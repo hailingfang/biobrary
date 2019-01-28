@@ -1,9 +1,10 @@
-import copy
+#import copy
 import re
-import argparse
+#import argparse
+#-------------------------------------------------------------------------------
 class Fasta_parse:
     """
-    this class was writed to parse fasta file. 
+    this class was writed to parse fasta file.
 
     And there are three methods within class. fist is __inint__, to add data and seq_heads attibution to Instance. The second is fasta_print, to print self.data back to fasta file, and the length of fasta file line can be modifed by argrment 'line_len', dauflt length is 80 characters. The third is join_lines, which will modified self.data, and make value into a line
 
@@ -13,7 +14,7 @@ class Fasta_parse:
     def __init__(self,file_name):
         def check_file_format(file_name):
             all_first_char=[line[0] for line in open(file_name)]
-            all_char=[char for char in all_first_char if char != '>']
+            #all_char=[char for char in all_first_char if char != '>']
             #string=''.join(all_char)
 
             i=0
@@ -69,23 +70,61 @@ class Fasta_parse:
                 print(part)
                 i+=line_len
                 part=whole_line[i:i+line_len]
-   
+
         self.print_len=line_len
 #-----------------------------------------------------------------
-
-
 class Gff_parse:
-    pass
-#-----------------------------------------------------------------
+    """
+    #this is a file parse for gff version3.
+    """
+    def __init__(self,file_name):
+            def struc_data(file_name):
+                data_out={'mata_dt':[],'information':[],'seq':[]}
+                i=0
+                for line in open(file_name):
+                    line=line.rstrip()
+                    if line[0]!='#' and i==0:
+                        i=1
+                    elif line[0]=='#' and i==1:
+                        i=2
+                    if i==0:
+                        data_out['mata_dt'].append(line)
+                    if i==1:
+                        data_out['information'].append(line)
+                    if i==2:
+                        data_out['seq'].append(line)
+                tmp=[]
+                for line in data_out['seq']:
+                    if line[0]!='#': tmp.append(line)
+                    if len(tmp)==0:
+                        data_out['seq']=None
+                    else:
+                        data_out['seq']=tmp
+                tmp={}
+                for line in data_out['information']:
+                    line_ele=line.split('\t')
+                    if line_ele[0] not in tmp:
+                        tmp[line_ele[0]]={}
+                    if line_ele[1] not in tmp[line_ele[0]]:
+                        tmp[line_ele[0]][line_ele[1]]={}
+                    if line_ele[2] not in tmp[line_ele[0]][line_ele[1]]:
+                        tmp[line_ele[0]][line_ele[1]][line_ele[2]]=[]
+                    tmp2={'position':[],'info':{}}
+                    tmp2['position']=[line_ele[3],line_ele[4],line_ele[6]]
+                    info_ele=line_ele[8].split(';')
+                    for ele in info_ele:
+                        key,value=ele.split('=')
+                        tmp2['info'][key]=value
+                    tmp[line_ele[0]][line_ele[1]][line_ele[2]].append(tmp2)
+                data_out['information']=tmp
+                return data_out
 
-
-
+            self.data=struc_data(file_name)
+            #print(self.data)
+#-------------------------------------------------------------------------------
 class Gbk_parse:
     pass
-#-----------------------------------------------------------------
-
-
-
+#-------------------------------------------------------------------------------
 class Blast_parse:
     """
         This is a Class for Blast result. the out format of blast is 0.
@@ -142,7 +181,7 @@ class Blast_parse:
                     if i==1:
                         mata_dt.append(line)
                     elif j==1:
-                        hit[key].append(line) 
+                        hit[key].append(line)
                     else:
                         continue
                 query_records[query]={}
@@ -194,7 +233,7 @@ class Blast_parse:
                 s_range=[s_range[0],s_range[-1]]
                 return q_range,s_range,q,s
 
-                    
+
             #structure hits match segments informations.
             query_ali=re.compile(r'Query\s{2}.+')
             expect_re=re.compile(r'.+Expect\s=\s(.+)')
@@ -294,10 +333,6 @@ class Blast_parse:
                 data_out.append(ele)
 
         return data_out
-
-
-
-
 #-----------------------------------------------------------------
 
 
@@ -306,25 +341,5 @@ class Blast_parse:
 #=================================================================
 if __name__ == '__main__':
     import sys
-    
-    fdt=Blast_parse(sys.argv[1])
 
-#    for query in fdt.data['query_records']:
-#        print(query)
-#        print(fdt.data['query_records'][query]['query_len'])
-#        for hit in fdt.data['query_records'][query]['subjects']:
-#            print(hit)
-#            for segment in fdt.data['query_records'][query]['subjects'][hit]['match_segment']:
-#                print(segment)
-#                for key in fdt.data['query_records'][query]['subjects'][hit]['match_segment'][segment]: 
-#                    print(key,fdt.data['query_records'][query]['subjects'][hit]['match_segment'][segment][key])
-
-    #print(fdt.data)
-    dlist=fdt.give_result_list()
-    for ele in dlist:
-        print(ele)
-
-
-
-
-
+    fdt=Gff_parse(sys.argv[1])
