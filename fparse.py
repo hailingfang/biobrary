@@ -150,84 +150,113 @@ class Blast_parse:
             return matadata,query_res
 
         def split_query_records(query_res):
-            query_records={}
-            begin=re.compile(r'Query=\s.+')
+            query_records=[]
+            query_begin=re.compile(r'Query=\s.+')
+            tmp=[]
             for line in query_res:
-                if begin.match(line):
-                    key=re.match(r'Query=\s(.+)',line).groups()[0]
-                    if key not in query_records: query_records[key]=[]
-                query_records[key].append(line)
+                if query_begin.match(line):
+                    query_records.append(tmp)
+                    tmp=[]
+                tmp.append(line)
+            query_records.append(tmp)
+            query_records=query_records[1:]
             return query_records
 
-        def split_hit(query_records):
-            significent_alig_re=re.compile(r'Sequences\sproducing\ssignificant\salignments:.+')
-            query_length_re=re.compile(r'Length=(\d+)')
-            query_mata_re=re.compile(r'Lambda.+')
-            query_end_re=re.compile(r'Effective\ssearch.+')
-            hit_re=re.compile(r'>\s(.+)')
-            i=j=k=0
+        def split_per_query(query_records):
+            data_out={}
+            query_re=re.compile(r'Query=.*')
+            result_table_re_1=re.compile(r'Sequences\sproducing\ssignificant.*')
+            result_table_re_2=re.compile(r'\*\*\*\*\*.*')
+            query_mata_re_1=re.compile(r'Lambda.*')
+            query_mata_re_2=re.compile(r'Effective\ssearch\sspace\sused:.*')
+            query_name_re=re.compile(r'Query=\s(.+?)Length.*')
+            query_length_re=re.compile(r'.*Length=(\d+).*')
             for query in query_records:
-                #print(query)
-                length=None
-                hit={}
-                mata_dt=[]
-                significent_alig=[]
-                for line in query_records[query]:
-                    if not length and query_length_re.match(line):
-                        length=query_length_re.match(line).groups()[0]
-                    if significent_alig_re.match(line):
-                         i=1
-                         j=k=0
-                    if hit_re.match(line):
-                        key=hit_re.match(line).groups()[0]
-                        if not key in hit: hit[key]=[]
-                        i=0
-                        j=1
-                        k=0
-                    if query_mata_re.match(line) or query_end_re.match(line):
-                        i=0
-                        j=0
-                        k=1
-                    if i==1:
-                        significent_alig.append(line)
-                    elif j==1:
-                        hit[key].append(line)
-                    elif k==1:
-                        mata_dt.append(line)
+                head=[]
+                body=[]
+                tail=[]
+                i=j=k=0
+                for line in query:
+                    if query_re.match(line):i=1
+                    if result_table_re_1.match(line) or result_table_re_2.match(line):j=1
+                    if query_mata_re_1.match(line) or query_mata_re_2.match(line):k=1
+                    if i==1 and j==0 and k==0:
+                        head.append(line)
+                    if i==1 and j==1 and k==0:
+                        body.append(line)
+                    if i==1 and j==1 and k==1:
+                        tail.append(line)
+                head=''.join(head)
+                #print(head)
+                query_name=query_name_re.match(head).groups()[0]
+                query_len=query_length_re.match(head).groups()[0]
+                data_out[query_name]={'query_len':query_len,'matadata':tail,'body':body}
+            return data_out
 
-                query_records[query]={}
-                query_records[query]['significent_alig']=significent_alig
-                query_records[query]['mata_data']=mata_dt
-                query_records[query]['query_len']=length
-                query_records[query]['hits']=hit
+        def split_hits(query_records):
+            significent_alig_re=re.compile(r'Sequences\sproducing\ssignificant\salignments:.+')
+            hit_re=re.compile(r'>\s(.+)')
+            for query in query_records:
+                alig_summary=[]
+                hits=[]
+                i=j=0
+                for line in query_records[query]['body']:
+                    if i==0 and significent_alig_re.match(line):i=1
+                    if j==0 and hit_re.match(line): j=1
+                    if i==1 and j==0:
+                        alig_summary.append(line)
+                    if i==1 and j==1:
+                        hits.append(line)
+                query_records[query]['alig_summary']=alig_summary
+                query_records[query].pop('body')
+                tmp=[]
+                block=[]
+                for line in hits:
+                    if hit_re.match(line):
+                        tmp.append(block)
+                        block=[]
+                    block.append(line)
+                tmp.append(block)
+                hits=tmp[1:]
+                query_records[query]['hits']=hits
             return query_records
 
         def split_hit_segment(query_records):
+            head_re=re.compile(r'>\s.*')
             score_re=re.compile(r'\sScore\s=\s(.+?),')
+            hit_name_re=re.compile(r'>\s(.+?)Length.*')
+            hit_len_re=re.compile(r'.*Length=(\d+).*')
             for query in query_records:
+                hits={}
                 for hit in query_records[query]['hits']:
-                    hit_length_re=re.compile(r'Length=(\d+)')
-                    hit_len=None
+                    head=[]
+                    body=[]
+                    i=j=0
+                    for line in hit:
+                        if i==0 and head_re.match(line): i=1
+                        if j==0 and score_re.match(line): j=1
+                        if i==1 and j==0:
+                            head.append(line)
+                        if i==1 and j==1:
+                            body.append(line)
+
+                    head=''.join(head)
+                    #print(head)
+                    hit_name=hit_name_re.match(head).groups()[0]
+                    hit_len=hit_len_re.match(head).groups()[0]
+
+                    hits[hit_name]={'hit_len':hit_len}
                     segment={}
                     i=1
-                    j=0
-                    for line in query_records[query]['hits'][hit]:
-                        #print(line)
-                        if not hit_len and hit_length_re.match(line):
-                            hit_len=hit_length_re.match(line).groups()[0]
-
+                    for line in body:
                         if score_re.match(line):
                             key='segment_'+str(i)
                             if key not in segment: segment[key]=[]
                             i+=1
-                            j=1
-                        if j==1:
-                            segment[key].append(line)
-
-                    query_records[query]['hits'][hit]={}
-                    query_records[query]['hits'][hit]['subject_len']=hit_len
-                    query_records[query]['hits'][hit]['segments']=segment
-                return query_records
+                        segment[key].append(line)
+                    hits[hit_name]['segments']=segment
+                query_records[query]['hits']=hits
+            return query_records
 
         def struc_query_subjct(qs_line):
             q_range=[]
@@ -255,7 +284,8 @@ class Blast_parse:
             gap_re=re.compile(r'.*?(Gaps)\s=\s(.+?)(?:,|$)')
             positives_re=re.compile(r'.*?(Positives)\s=\s(.+?)(?:,|$)')
             strand_re=re.compile(r'.*?(Strand)=(.+?)(?:,|$)')
-            split_identities_gaps_positives_re=re.compile(r'.*(\d+)/(\d+)\s\((.+)\).*')
+            split_identities_gaps_positives_re=re.compile(r'.*?(\d+)/(\d+)\s\((.+)\).*')
+            split_score_re=re.compile(r'(.+?)\sbits\s')
             patterns=[score_re,expect_re,identities_re,gap_re,positives_re,strand_re]
             alig_len=None
             gap_num=None
@@ -270,6 +300,7 @@ class Blast_parse:
                             #print(re_split)
                             alig_info_dic['Identities']=re_split.groups()[2]
                             match_num=re_split.groups()[0]
+                            #print('>>>>>>>',match_num)
                             alig_len=re_split.groups()[1]
                         elif re_res.groups()[0]=='Gaps':
                             re_split=split_identities_gaps_positives_re.match(re_res.groups()[1])
@@ -280,6 +311,9 @@ class Blast_parse:
                         elif re_res.groups()[0]=='Positives':
                             re_split=split_identities_gaps_positives_re.match(re_res.groups()[1])
                             alig_info_dic['Positives']=re_split.groups()[2]
+                        elif re_res.groups()[0]=='Score':
+                            #print(re_res.groups()[1])
+                            alig_info_dic['Score']=split_score_re.match(re_res.groups()[1]).groups()[0]
                         else:
                             alig_info_dic[re_res.groups()[0]]=re_res.groups()[1]
             if alig_len and gap_num and match_num:
@@ -318,18 +352,40 @@ class Blast_parse:
             query_matadata,query_res=split_matadata_query_res(a_lines)
             data_out['mata_data']=query_matadata
             query_records=split_query_records(query_res)
-            query_records=split_hit(query_records)
+            query_records=split_per_query(query_records)
+            query_records=split_hits(query_records)
             query_records=split_hit_segment(query_records)
             query_records=struc_segment(query_records)
             data_out['query_records']=query_records
             return data_out
 
         self.data=struc_data(file_name)
-        self.data_struc="{'mata_data':[str,...],'query_records':{query_name:{'mata_data':[],'query_len':str,'hits':{hit_name:{'subject_len':str,'segments':{segment:{'alignment':[q_range,s_range,q,s],'alig_info':{'Score'?:str,'Expect'?:str,...}},...}}}},...}}"
+        self.data_struc="{'mata_data':[str,...],'query_records':{query_name:{'mata_data':[],'query_len':str,'aligment_summary':[],'hits':{hit_name:{'hit_len':str,'segments':{segment:{'alignment':[q_range,s_range,q,s],'alig_info':{'Score'?:str,'Expect'?:str,...}},...}}}},...}}"
 
 
-#    def give_result_list(self):
-#        data_list=[]
+    def get_summary(self):
+        data_list=[]
+        for query in self.data['query_records']:
+            query_name=query
+            query_length=self.data['query_records'][query]['query_len']
+            for hit in self.data['query_records'][query]['hits']:
+                hit_name=hit
+                hit_len=self.data['query_records'][query]['hits'][hit]['hit_len']
+                for segment in self.data['query_records'][query]['hits'][hit]['segments']:
+                    segment_name=segment
+                    alig_len=self.data['query_records'][query]['hits'][hit]['segments'][segment]['alig_info']['alig_len']
+                    match_num=self.data['query_records'][query]['hits'][hit]['segments'][segment]['alig_info']['match_num']
+                    mismatch_num=self.data['query_records'][query]['hits'][hit]['segments'][segment]['alig_info']['mismatch_num']
+                    gap_num=self.data['query_records'][query]['hits'][hit]['segments'][segment]['alig_info']['gap_num']
+                    identities=self.data['query_records'][query]['hits'][hit]['segments'][segment]['alig_info']['Identities']
+                    score=self.data['query_records'][query]['hits'][hit]['segments'][segment]['alig_info']['Score']
+                    query_start,query_end=self.data['query_records'][query]['hits'][hit]['segments'][segment]['alignment'][0]
+                    subjct_start,subjct_end=self.data['query_records'][query]['hits'][hit]['segments'][segment]['alignment'][1]
+                    data_list.append([query_name,query_length,hit_name,hit_len,segment_name,alig_len,match_num,mismatch_num,gap_num,
+                    query_start,query_end,subjct_start,subjct_end,identities,score])
+        return data_list
+
+
 #        for query in self.data['query_records']:
 #            query_len=self.data['query_records'][query]['query_len']
 #            for sbjct in self.data['query_records'][query]['subjects']:
@@ -380,4 +436,14 @@ if __name__ == '__main__':
     import sys
 
     fdt=Blast_parse(sys.argv[1])
-    print(fdt.data)
+    summary=fdt.get_summary()
+#    print(summary)
+#    for query in fdt.data['query_records']:
+#        print('>',query)
+#        for hit in fdt.data['query_records'][query]['hits']:
+#            print(hit)
+#            for segment in fdt.data['query_records'][query]['hits'][hit]['segments']:
+#                print(segment)
+#                for key in fdt.data['query_records'][query]['hits'][hit]['segments'][segment]:
+#                    print(fdt.data['query_records'][query]['hits'][hit]['segments'][segment][key])
+#
