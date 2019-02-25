@@ -1,39 +1,32 @@
-#import copy
-import re
-#import argparse
 #-------------------------------------------------------------------------------
 class Fasta_parse:
     """
-    this class was writed to parse fasta file.
-
-    And there are three methods within class. fist is __inint__, to add data and seq_heads attibution to Instance. The second is fasta_print, to print self.data back to fasta file, and the length of fasta file line can be modifed by argrment 'line_len', dauflt length is 80 characters. The third is join_lines, which will modified self.data, and make value into a line
-
-    And Instance contain tow attibution. one is data, it is a dictionary contain the information of fasta file, and the key is head line, and the value is the seq. second attribution is seq_heads this is a list, contain all head line of fasta file and by the fasta file order.
+    This class was writed to parse fasta file.
+    And there are three methods within class.
+    The first ist is __inint__, to add data and seq_heads attibution to Instance.
+    The second is fasta_print, to print self.data back to fasta file,
+    and the length of fasta file line can be modifed by argrment 'line_len',
+    dauflt length is 80 characters.
+    The third is join_lines, which will modified self.data, and make value into a line
+    And Instance contain tow attibution. one is data,
+    it is a dictionary contain the information of fasta file,
+    and the key is head line, and the value is the seq.
+    second attribution is seq_heads this is a list,
+    contain all head line of fasta file and by the fasta file order.
     """
-    import re
     def __init__(self,file_name):
         def check_file_format(file_name):
             all_first_char=[line[0] for line in open(file_name)]
-            #all_char=[char for char in all_first_char if char != '>']
-            #string=''.join(all_char)
-
             i=0
             if len(all_first_char)>0 and all_first_char[0]=='>': pass
             else: i=1
-            #if string.isalpha: pass
-            #else: i=1
-
             if i:
                 return False
             else:
                 return True
 
-
         check_res=check_file_format(file_name)
-        #print(check_res)
         if check_res:
-            self.fileformat='fasta'
-
             data={}
             seq_heads=[]
             for line in open(file_name,'r'):
@@ -53,11 +46,9 @@ class Fasta_parse:
             print('The file may not be a fasta file.')
             exit()
 
-
     def join_lines(self):
         for key in self.data:
             self.data[key]=''.join(self.data[key])
-
 
     def fasta_print(self,line_len=80):
         for key in self.seq_heads:
@@ -75,7 +66,7 @@ class Fasta_parse:
 #-------------------------------------------------------------------------------
 class Gff_parse:
     """
-    this is a file parse for gff version3.
+    this class was used to parse for gff file version3.
     """
     def __init__(self,file_name):
             def struc_data(file_name):
@@ -129,8 +120,8 @@ class Blast_parse:
     """
         This is a Class for Blast result. the out format of blast is 0.
     """
-    import re
     def __init__(self,file_name):
+        import re
         def split_matadata_query_res(file_lines):
             matadata=[]
             query_res=[]
@@ -199,7 +190,7 @@ class Blast_parse:
             for query in query_records:
                 alig_summary=[]
                 hits=[]
-                i=j=0
+                i=j=0 
                 for line in query_records[query]['body']:
                     if i==0 and significent_alig_re.match(line):i=1
                     if j==0 and hit_re.match(line): j=1
@@ -350,6 +341,7 @@ class Blast_parse:
             f_in=open(f_name,'r')
             a_lines=f_in.readlines()
             query_matadata,query_res=split_matadata_query_res(a_lines)
+            del a_lines
             data_out['mata_data']=query_matadata
             query_records=split_query_records(query_res)
             query_records=split_per_query(query_records)
@@ -437,6 +429,7 @@ if __name__ == '__main__':
 
     fdt=Blast_parse(sys.argv[1])
     summary=fdt.get_summary()
+    print(summary)
 #    print(summary)
 #    for query in fdt.data['query_records']:
 #        print('>',query)
