@@ -32,7 +32,7 @@ class Fasta_parse:
             for line in open(file_name,'r'):
                 line=line.rstrip()
                 if line[0]=='>':
-                    key=line[1:]
+                    key=line[1:].strip()
                     seq_heads.append(key)
                     data[key]=[]
                 else:
@@ -190,7 +190,7 @@ class Blast_parse:
             for query in query_records:
                 alig_summary=[]
                 hits=[]
-                i=j=0 
+                i=j=0
                 for line in query_records[query]['body']:
                     if i==0 and significent_alig_re.match(line):i=1
                     if j==0 and hit_re.match(line): j=1
