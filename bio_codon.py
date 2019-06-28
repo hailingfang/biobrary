@@ -23,4 +23,4 @@ CODON_AA={'TTT':'F','TTC':'F',
 
 #print(len(CODON_AA))
 
-
+base_complement = {'A':'T', 'T':'A', 'G':'C', 'C':'G', 'N':'N', 'a':'t', 't':'a', 'c':'g', 'g':'c', 'n':'n'}
