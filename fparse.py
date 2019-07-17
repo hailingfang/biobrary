@@ -1,3 +1,6 @@
+import re
+import os
+
 #-------------------------------------------------------------------------------
 class Fasta_parse:
     """
@@ -7,121 +10,137 @@ class Fasta_parse:
     The second is fasta_print, to print self.data back to fasta file,
     and the length of fasta file line can be modifed by argrment 'line_len',
     dauflt length is 80 characters.
-    The third is join_lines, which will modified self.data, and make value into a line
-    And Instance contain tow attibution. one is data,
+    The third is join_lines, which will modified self.data, and make value into
+    a line and Instance contain tow attibution. one is data,
     it is a dictionary contain the information of fasta file,
     and the key is head line, and the value is the seq.
     second attribution is seq_heads this is a list,
     contain all head line of fasta file and by the fasta file order.
     """
-    def __init__(self,file_name):
-        def check_file_format(file_name):
-            all_first_char=[line[0] for line in open(file_name)]
-            i=0
-            if len(all_first_char)>0 and all_first_char[0]=='>': pass
-            else: i=1
-            if i:
-                return False
-            else:
-                return True
+    def __init__(self, file_name):
 
-        check_res=check_file_format(file_name)
+        def check_file_format(all_line):
+            all_first_char = [line[0] for line in all_line]
+            i = False
+            if len(all_first_char) > 0 and all_first_char[0] == '>':
+                i = True
+            return i
+
+        if os.path.exists(file_name):
+            all_line = [line.rstrip() for line in open(file_name)]
+        else:
+            all_line = file_name.strip().split('\n')
+        check_res = check_file_format(all_line)
         if check_res:
-            data={}
-            seq_heads=[]
-            for line in open(file_name,'r'):
-                line=line.rstrip()
-                if line[0]=='>':
-                    key=line[1:].strip()
+            data = {}
+            seq_heads = []
+            for line in all_line:
+                #print(line)
+                if line[0] == '>':
+                    key = line[1:].strip()
                     seq_heads.append(key)
-                    data[key]=[]
+                    data[key] = []
                 else:
                     data[key].append(line)
-            self.data=data
-            self.seq_heads=seq_heads
-            self.print_len=80
-            self.data_struc='{head:[seq,...]}'
-
+            self.data = data
+            self.seq_heads = seq_heads
+            self.print_len = 80
+            self.data_struc = '{head:[seq,...]}'
         else:
-            print('The file may not be a fasta file.')
-            exit()
+            raise Exception('FileTypeError: The file may not be a fasta file.')
 
     def join_lines(self):
         for key in self.data:
-            self.data[key]=''.join(self.data[key])
+            self.data[key] = ''.join(self.data[key])
 
-    def fasta_print(self,line_len=80):
+    def fasta_print(self, line_len=80):
         for key in self.seq_heads:
-            print('>'+key)
-            whole_line=''.join(self.data[key])
-
-            i=0
-            part=whole_line[i:i+line_len]
+            print('>' + key)
+            whole_line = ''.join(self.data[key])
+            i = 0
+            part = whole_line[i:i+line_len]
             while part:
                 print(part)
-                i+=line_len
-                part=whole_line[i:i+line_len]
+                i += line_len
+                part = whole_line[i:i+line_len]
+        self.print_len = line_len
 
-        self.print_len=line_len
+
+
 #-------------------------------------------------------------------------------
 class Gff_parse:
     """
-    this class was used to parse for gff file version3.
+    This class was used to parse for gff file version3.
+    Thist class just offer a data structure for GFF file.
     """
-    def __init__(self,file_name):
-            def struc_data(file_name):
-                data_out={'mata_dt':[],'information':[],'seq':[]}
-                i=0
-                for line in open(file_name):
-                    line=line.rstrip()
-                    if line[0]!='#' and i==0:
-                        i=1
-                    elif line[0]=='#' and i==1:
-                        i=2
-                    if i==0:
-                        data_out['mata_dt'].append(line)
-                    if i==1:
-                        data_out['information'].append(line)
-                    if i==2:
-                        data_out['seq'].append(line)
-                tmp=[]
-                for line in data_out['seq']:
-                    if line[0]!='#': tmp.append(line)
-                    if len(tmp)==0:
-                        data_out['seq']=None
-                    else:
-                        data_out['seq']=tmp
-                tmp={}
-                for line in data_out['information']:
-                    line_ele=line.split('\t')
-                    if line_ele[0] not in tmp:
-                        tmp[line_ele[0]]={}
-                    if line_ele[1] not in tmp[line_ele[0]]:
-                        tmp[line_ele[0]][line_ele[1]]={}
-                    if line_ele[2] not in tmp[line_ele[0]][line_ele[1]]:
-                        tmp[line_ele[0]][line_ele[1]][line_ele[2]]=[]
-                    tmp2={'position':[],'info':{}}
-                    tmp2['position']=[line_ele[3],line_ele[4],line_ele[5],line_ele[6],line_ele[7]]
-                    info_ele=line_ele[8].split(';')
-                    for ele in info_ele:
-                        key,value=ele.split('=')
-                        tmp2['info'][key]=value
-                    tmp[line_ele[0]][line_ele[1]][line_ele[2]].append(tmp2)
-                data_out['information']=tmp
-                return data_out
+    def __init__(self, file_name):
 
-            self.data=struc_data(file_name)
-            self.data_struc="{'matadata':[str,...],'information':{contig:{source:{feature:{'position':[start,end,score,strand,phase]},...},...},...}}"
+        def struc_data(file_name):
+            data_out = {'meta_dt':[], 'information':[], 'fasta_seq':[]}
+            seq_tmp_re = re.compile('##FASTA')
+            i = 0
+            for line in open(file_name):
+                line = line.rstrip()
+                if line[0] == '#':
+                    data_out['meta_dt'].append(line)
+                    if seq_tmp_re.match(line):
+                        i = 1
+                elif i == 0:
+                    data_out['information'].append(line)
+                elif i == 1:
+                    data_out['fasta_seq'].append(line)
+                else:
+                    raise Exception('opps')
+            tmp = {}
+            for line in data_out['information']:
+                line_ele = line.split('\t')
+                contig = line_ele[0]
+                source = line_ele[1]
+                seq_type = line_ele[2]
+                position = (int(line_ele[3]), int(line_ele[4]))
+                filde_6 = line_ele[5]
+                strand = line_ele[6]
+                phase = line_ele[7]
+                attributes = line_ele[8].split(';')
+                attributes_tmp = {}
+                for ele in attributes:
+                    ele = ele.split('=')
+                    attributes_tmp[ele[0]] = ele[1]
+                attributes = attributes_tmp
+                if contig not in tmp:
+                    tmp[contig] = {}
+                if source not in tmp[contig]:
+                    tmp[contig][source] = {}
+                if seq_type not in tmp[contig][source]:
+                    tmp[contig][source][seq_type] = {}
+                tmp[contig][source][seq_type][position] = {'score':filde_6, \
+                    'strand':strand, 'phase':phase, 'attributes':attributes}
+            data_out['information'] = tmp
+            return data_out
+
+        self.data = struc_data(file_name)
+        self.data_struc="{'mata_dt':[str], \
+            'information':{contig:{source:{seq_type:{position:{'score':str, \
+            'strand':str, 'phase':str, attributes:{...}}}}}}, \
+            'seq':[]}"
+
+
+
+
 #-------------------------------------------------------------------------------
 class Gbk_parse:
     pass
+
+
+
+
 #-------------------------------------------------------------------------------
 class Blast_parse:
     """
         This is a Class for Blast result. the out format of blast is 0.
     """
     def __init__(self,file_name):
-        import re
+
         def split_matadata_query_res(file_lines):
             matadata=[]
             query_res=[]
@@ -426,17 +445,14 @@ class Blast_parse:
 #===============================================================================
 if __name__ == '__main__':
     import sys
-
-    fdt=Blast_parse(sys.argv[1])
-    summary=fdt.get_summary()
-    print(summary)
-#    print(summary)
-#    for query in fdt.data['query_records']:
-#        print('>',query)
-#        for hit in fdt.data['query_records'][query]['hits']:
-#            print(hit)
-#            for segment in fdt.data['query_records'][query]['hits'][hit]['segments']:
-#                print(segment)
-#                for key in fdt.data['query_records'][query]['hits'][hit]['segments'][segment]:
-#                    print(fdt.data['query_records'][query]['hits'][hit]['segments'][segment][key])
-#
+    print(sys.argv)
+    dt = Gff_parse(sys.argv[1])
+    for contig in dt.data['information']:
+        print('>', contig)
+        for source in dt.data['information'][contig]:
+            print('>>', source)
+            for seq_type in dt.data['information'][contig][source]:
+                print('>>>', seq_type)
+                for position in dt.data['information'][contig][source][seq_type]:
+                    #print(position)
+                    pass
