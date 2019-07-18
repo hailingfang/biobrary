@@ -461,3 +461,4 @@ if __name__ == '__main__':
                         print(dt.data['information'][contig][source][seq_type][position])
                     else:
                         break
+                        #data
