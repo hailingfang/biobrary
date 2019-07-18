@@ -453,6 +453,11 @@ if __name__ == '__main__':
             print('>>', source)
             for seq_type in dt.data['information'][contig][source]:
                 print('>>>', seq_type)
+                i = 0
                 for position in dt.data['information'][contig][source][seq_type]:
                     #print(position)
-                    pass
+                    i += 1
+                    if i <10:
+                        print(dt.data['information'][contig][source][seq_type][position])
+                    else:
+                        break
