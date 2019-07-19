@@ -1,3 +1,4 @@
+#! /usr/bin/env python3
 import re
 import os
 
@@ -461,4 +462,3 @@ if __name__ == '__main__':
                         print(dt.data['information'][contig][source][seq_type][position])
                     else:
                         break
-                        #data
