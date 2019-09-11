@@ -104,7 +104,7 @@ class CircleNode:
         if self.parent_link_bridge:
             return True
         else:
-            return 0
+            return False
 
     def get_dist(self, node):
         return self.base_inner_node.get_distance(node.base_inner_node)
@@ -165,22 +165,3 @@ class CircleNodeTree:
         root_circle_node = CircleNode(self.original_tree, 'CircleNode_0', 0)
         link_circle_node(root_circle_node, edge_len_cutoff)
         self.circle_node_tree =  root_circle_node
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#
