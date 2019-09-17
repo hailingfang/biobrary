@@ -5,20 +5,19 @@ import ete3
 
 class CircleNode:
 
-    def __init__(self, CircleNodeName='', BaseDist=None, LinkerDist=None, \
-        BaseInnerNode=None, BirthInnerNode=set(), BaseLinkBridge=None, BirthLinkBridge=set()):
-        self.name = CircleNodeName
+    def __init__(self, BaseInnerNode, Name=''):
+        self.name = Name
         self.attr = None
-        self.base_dist = BaseDist
-        self.linker_dist = LinkerDist
+        self.base_dist = None
+        self.linker_dist = None
         #self.base_inner_node can be 'None' or a ete3 TreeNode
         self.base_inner_node = BaseInnerNode
         #self.birth_inner_node can be '[]' or a list of ete3 TreeNode
-        self.birth_inner_node = BirthInnerNode
+        self.birth_inner_node = set()
         # self.base_link_bridge can be 'None' or '[BaseInnerNode, parent_circle_node]'
-        self.base_link_bridge = BaseLinkBridge
+        self.base_link_bridge = None
         # self.birth_link_bridge can be '[]' or '[[birth_inner_node, child_circle_node], ...]'
-        self.birth_link_bridge = BirthLinkBridge
+        self.birth_link_bridge = set()
 
     def is_leaf(self):
         if self.birth_inner_node:
@@ -77,10 +76,6 @@ class CircleNode:
         else:
             return None
 
-    def get_distance(self, second_circle_node):
-        print('not writed now.')
-        return 0
-
     def get_children_base_inner_node(self):
         children = self.get_children()
         children_base_inner_node = [child.base_inner_node for child in children]
@@ -124,11 +119,11 @@ class CircleNode:
         return birth_node
 
     def get_descendants(self):
-        def get_desc(circle_node):
-            for child in circle_node.get_children():
-                print(child.name)
-                get_desc(child)
-        get_desc(self)
+        descendants = []
+        for child in self.get_children():
+            descendants.append(child)
+            descendants += child.get_descendants()
+        return descendants
 
     def add_child(self, parent_inner_link_node, child_circle_node):
         self.birth_link_bridge.add((parent_inner_link_node, child_circle_node))
@@ -146,18 +141,18 @@ class CircleNode:
                     tmp = bridge
                     break
             parent.birth_link_bridge.remove(tmp)
-        #self.base_link_bridge = None
         return self
 
     def delete(self):
         children = self.get_children()
         parent = self.get_parent()
         parent_birth_node = self.get_parent_birth_node()
-        for child in children:
-            child.base_dist += self.base_dist
-            child.linker_dist = self.linker_dist + child.base_dist
-            parent.add_child(parent_birth_node, child)
-        self.detach()
+        if not self.is_root():
+            for child in children:
+                child.base_dist += self.base_dist
+                child.linker_dist = self.linker_dist + child.base_dist
+                parent.add_child(parent_birth_node, child)
+            self.detach()
         return self
 
     def merge(self, second_circle_node):
@@ -190,7 +185,6 @@ class CircleNode:
         traverse_tree(root_circle_node, root)
         return root
 
-
     def split_inner_tree(self):
         root_circle_node = self.get_root_circle_node()
         descendants = root_circle_node.get_descendants()
@@ -210,21 +204,37 @@ class CircleNode:
 
     def trim_inner_node(self):
 
-        def trim_tree_recursively(node, stop_node):
+        def trim_node(node, stop_node):
+            nonlocal child_need_detach
+            nonlocal base_inner_node
             if node not in stop_node:
-                descendants = node.get_descendants()
                 i = 0
-                for des in descendants:
-                    if des in stop_node:
-                        i += 1
-                if i == 0:
-                    node.detach()
-                for child in node:
-                    trim_tree_recursively(child, stop_node)
+                for node_ele in node.get_descendants():
+                    if node_ele in stop_node:
+                        i = 1
+                        break
+                if (i == 0) and (node != base_inner_node):
+                    child_need_detach.append(node)
+                else:
+                    for child in node.children:
+                        trim_node(child, stop_node)
+            return child_need_detach
 
         base_inner_node = self.base_inner_node
-        children_base_inner_node = self.get_children_base_inner_node()
-        trim_tree_recursively(base_inner_node, children_base_inner_node)
+        stop_node = self.get_children_base_inner_node()
+        child_need_detach = []
+        trim_node(base_inner_node, stop_node)
+        for node in child_need_detach:
+            node.detach()
+
+    def traverse(self):
+        nodes = []
+        nodes.append(self)
+        for child in self.get_children():
+            nodes += child.traverse()
+        return nodes
+
+
 
 
 class CircleNodeTree:
@@ -244,53 +254,21 @@ class CircleNodeTree:
         def link_circle_node(parent_circle_node, edge_len_cutoff):
             nonlocal i
             birth_linker = find_birth_linker(parent_circle_node.base_inner_node, edge_len_cutoff)
-            print(birth_linker)
-#            for linker in birth_linker:
-#                i += 1
-#                parent_inner_link_node = linker[0]
-#                child_base_inner_node = linker[1]
-#                child_circle_node_name = 'CircleNode_' + str(i)
-#                child_circle_node = CircleNode()
-#                child_circle_node.name = child_circle_node_name
-#                child_circle_node.base_inner_node = child_base_inner_node
-#                child_circle_node.base_dist = child_base_inner_node.get_distance(parent_circle_node.base_inner_node)
-#                child_circle_node.linker_dist = child_base_inner_node.get_distance(parent_inner_link_node)
-#                parent_circle_node.birth_inner_node.add(parent_inner_link_node)
-#                parent_circle_node.add_child(parent_inner_link_node, child_circle_node)
-#                #link_circle_node(child_circle_node, edge_len_cutoff)
+            for linker in birth_linker:
+                i += 1
+                parent_inner_link_node = linker[0]
+                child_base_inner_node = linker[1]
+                child_circle_node_name = 'CircleNode_' + str(i)
+                child_circle_node = CircleNode(child_base_inner_node, child_circle_node_name)
+                child_circle_node.name = child_circle_node_name
+                child_circle_node.base_dist = child_base_inner_node.get_distance(parent_circle_node.base_inner_node)
+                child_circle_node.linker_dist = child_base_inner_node.get_distance(parent_inner_link_node)
+                parent_circle_node.birth_inner_node.add(parent_inner_link_node)
+                parent_circle_node.add_child(parent_inner_link_node, child_circle_node)
+                link_circle_node(child_circle_node, edge_len_cutoff)
 
         self.original_tree = ete3.Tree(treefile)
         i = 0
-        root_circle_node = CircleNode('CircleNode_0', 0, 0, self.original_tree)
+        root_circle_node = CircleNode(self.original_tree, 'CircleNode_0')
         link_circle_node(root_circle_node, edge_len_cutoff)
         self.circle_node_tree = root_circle_node
-
-
-def test():
-    tt = CircleNodeTree(sys.argv[1], float(sys.argv[2])).circle_node_tree
-    print(dir(tt))
-    print(tt.name)
-    print(tt.base_dist)
-    print(tt.linker_dist)
-    print(tt.base_inner_node)
-    print(tt.birth_inner_node)
-    print(tt.base_link_bridge)
-    print(tt.birth_link_bridge)
-    print(tt.get_children())
-    for c in tt.get_children():
-        print(c.name)
-    print(tt.is_root())
-    print(tt.is_leaf())
-
-    def tn(circle_node):
-        for child in circle_node.get_children():
-            print(child.name)
-            tn(child)
-    tn(tt)
-    return 0
-
-
-#
-if __name__ == '__main__':
-    import sys
-    test()
