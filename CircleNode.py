@@ -235,6 +235,13 @@ class CircleNode:
             nodes += child.traverse()
         return nodes
 
+    def change_base_inner_node_name(self):
+        root_circle_node = self.get_root_circle_node()
+        for node in root_circle_node.traverse():
+            if not node.base_inner_node.is_leaf():
+                node.base_inner_node.name = node.name
+        return 0
+
     def print_cluster(self, f_out=sys.stdout):
         if f_out != sys.stdout:
             f_out = open(f_out, 'w')
