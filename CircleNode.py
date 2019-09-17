@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
 import ete3
+import sys
 
 
 class CircleNode:
@@ -233,6 +234,22 @@ class CircleNode:
         for child in self.get_children():
             nodes += child.traverse()
         return nodes
+
+    def print_cluster(self, f_out=sys.stdout):
+        if f_out != sys.stdout:
+            f_out = open(f_out, 'w')
+        root_circle_node = self.get_root_circle_node()
+        root_circle_node.split_inner_tree()
+        for node in root_circle_node.traverse():
+            print('>' + node.name, file=f_out)
+            print('@' + node.base_inner_node.write(), file=f_out)
+            inner_node = node.get_inner_node()
+            for inner_node_ele in inner_node:
+                if inner_node_ele.name != '':
+                    print(inner_node_ele.name, file=f_out)
+        root_circle_node.join_inner_tree()
+        f_out.close()
+        return 0
 
 
 class CircleNodeTree:
