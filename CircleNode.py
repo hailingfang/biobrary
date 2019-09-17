@@ -235,8 +235,6 @@ class CircleNode:
         return nodes
 
 
-
-
 class CircleNodeTree:
 
     def __init__(self, treefile, edge_len_cutoff):
