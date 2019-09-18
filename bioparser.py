@@ -2,7 +2,7 @@ import re
 import os
 
 #-------------------------------------------------------------------------------
-class Fasta_parse:
+class Fasta_parser:
     """
     This class was writed to parse fasta file.
     And there are three methods within class.
