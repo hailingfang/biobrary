@@ -1,3 +1,3 @@
-import bioparser
-import biocodon
-import CircleNode
+import .bioparser
+import .biocodon
+import .CircleNode
