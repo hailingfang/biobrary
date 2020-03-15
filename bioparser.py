@@ -65,9 +65,13 @@ class Fasta_parser:
                 part = whole_line[i:i+line_len]
         self.print_len = line_len
 
+    def trim_head(self):
+        data_head_trimed = {}
+        for head in self.data:
+            data_head_trimed[head.split()[0]] = self.data[head]
+        self.data = data_head_trimed
 
 
-#-------------------------------------------------------------------------------
 class Gff_parser:
     """
     This class was used to parse for gff file version3.
@@ -446,7 +450,7 @@ class Blast_parse:
 if __name__ == '__main__':
     import sys
     print(sys.argv)
-    dt = Gff_parse(sys.argv[1])
+    dt = Gff_parser(sys.argv[1])
     for contig in dt.data['information']:
         print('>', contig)
         for source in dt.data['information'][contig]:
