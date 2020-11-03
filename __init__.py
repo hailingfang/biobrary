@@ -1,3 +1,3 @@
-from .bioparser import *
-from .biocodon import *
-from .CircleNode import *
+from . import bioparser
+from . import biocodon
+from . import CircleNode
