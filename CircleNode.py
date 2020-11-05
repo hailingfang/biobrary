@@ -1,9 +1,9 @@
 
 import ete3
-import sys
 
 
 class CircleNode:
+    import sys
 
     def __init__(self, BaseInnerNode, Name=''):
         self.name = Name
