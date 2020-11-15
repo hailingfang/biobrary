@@ -1,7 +1,9 @@
-# fbio
+# biolib
 Python3 library for bioinformatics.
+
 ## bioinformatic file parse.
-* Fasta_parse
-* Gff_parse
-* Gbff_parse
-* Blast_parse
+* biopaser  
+      Fasta_parser
+* biocondon
+* amino_acids_mw
+* CircleNond
