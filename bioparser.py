@@ -1,69 +1,48 @@
 import re
-import os
 
-#-------------------------------------------------------------------------------
+
 class Fasta_parser:
     """
     This class was writed to parse fasta file.
-    And there are three methods within class.
-    The first ist is __inint__, to add data and seq_heads attibution to Instance.
-    The second is fasta_print, to print self.data back to fasta file,
-    and the length of fasta file line can be modifed by argrment 'line_len',
-    dauflt length is 80 characters.
-    The third is join_lines, which will modified self.data, and make value into
-    a line and Instance contain tow attibution. one is data,
-    it is a dictionary contain the information of fasta file,
-    and the key is head line, and the value is the seq.
-    second attribution is seq_heads this is a list,
-    contain all head line of fasta file and by the fasta file order.
     """
     def __init__(self, file_name):
-
-        def check_file_format(all_line):
-            all_first_char = [line[0] for line in all_line]
-            i = False
-            if len(all_first_char) > 0 and all_first_char[0] == '>':
-                i = True
-            return i
-
-        if os.path.exists(file_name):
-            all_line = [line.rstrip() for line in open(file_name)]
-        else:
-            all_line = file_name.strip().split('\n')
-        check_res = check_file_format(all_line)
-        if check_res:
-            data = {}
-            seq_heads = []
-            for line in all_line:
-                #print(line)
+        self.data = {}
+        self.heads = []
+        with open(file_name) as f_in:
+            for line in f_in:
+                line = line.strip()
                 if line[0] == '>':
-                    key = line[1:].strip()
-                    seq_heads.append(key)
-                    data[key] = []
+                    head = line[1:]
+                    self.heads.append(head)
+                    self.data[head] = ''
                 else:
-                    data[key].append(line)
-            self.data = data
-            self.seq_heads = seq_heads
-            self.print_len = 80
-            self.data_struc = '{head:[seq,...]}'
-        else:
-            raise Exception('FileTypeError: The file may not be a fasta file.')
+                    self.data[head] += line
+            f_in.close()
+        self.print_width = 80
 
-    def join_lines(self):
-        for key in self.data:
-            self.data[key] = ''.join(self.data[key])
+    def __str__(self):
+        print_str = ''
+        for head in self.data:
+            print_str += '>' + head + '\n'
+            for i in range(len(self.data[head]))[::self.print_width]:
+                print_str += self.data[head][i: i + self.print_width] + '\n'
+            print_str = print_str.rstrip()
+        return print_str
 
-    def fasta_print(self, line_len=80):
-        for key in self.seq_heads:
-            print('>' + key)
-            whole_line = ''.join(self.data[key])
-            i = 0
-            part = whole_line[i:i+line_len]
-            while part:
-                print(part)
-                i += line_len
-                part = whole_line[i:i+line_len]
-        self.print_len = line_len
+    def set_print_width(self, width):
+        self.print_width = width
+
+    def __iter__(self):
+        self.all_keys = self.heads
+        self.all_keys.reverse()
+        return self
+
+    def __next__(self):
+        if len(self.all_keys) == 0:
+            raise StopIteration
+        key = self.all_keys.pop()
+        out = self.data[key]
+        return [key, out]
 
     def trim_head(self):
         data_head_trimed = {}
@@ -80,7 +59,7 @@ class Gff_parser:
     def __init__(self, file_name):
 
         def struc_data(file_name):
-            data_out = {'meta_dt':[], 'information':[], 'fasta_seq':[]}
+            data_out = {'meta_dt': [], 'information': [], 'fasta_seq': []}
             seq_tmp_re = re.compile('##FASTA')
             i = 0
             for line in open(file_name):
