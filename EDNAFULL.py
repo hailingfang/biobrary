@@ -1,4 +1,4 @@
-nucleotide_substitution_matrix = {
+nucleotide_score_matrix = {
 ('A', 'A') : 5, ('A', 'T') : -4, ('A', 'G') : -4, ('A', 'C') : -4, ('A', 'S') : -4, 
 ('A', 'W') : 1, ('A', 'R') : 1, ('A', 'Y') : -4, ('A', 'K') : -4, ('A', 'M') : 1, 
 ('A', 'B') : -4, ('A', 'V') : -1, ('A', 'H') : -1, ('A', 'D') : -1, ('A', 'N') : -2, 
