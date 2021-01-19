@@ -3,17 +3,21 @@ import setuptools
 setuptools.setup(
     name="biobrary",
     version="0.0.1",
-    author="Benjamin Fang",
-    author_email="benjaminfang.ol@outlook.com",
     description="library for bioinformatics.",
     url="https://github.com/benjaminfang/biobrary",
-    packages=setuptools.find_packages(
-        where="./src"),
+    author="Benjamin Fang",
+    author_email="benjaminfang.ol@outlook.com",
+    license='MIT',
     python_requires=">=3.7",
-    classifers=["Development Status :: 1 - Planning",
+    classifers=[
+        "Development Status :: 2 - Pre-Alpha",
         "License :: OSI Approved :: MIT License",
+        "Intended Audience :: Science/Research",
         "Natural Language :: English",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3.7",
     ],
+    keywords="bioinformatics, file_parser",
+    packages=setuptools.find_packages(),
+
 )
