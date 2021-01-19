@@ -4,6 +4,8 @@ setuptools.setup(
     name="biobrary",
     version="0.0.1",
     description="library for bioinformatics.",
+    long_description="biobrary\nA library for bioinformatics.\n",
+    long_description_conten_type="text/plain",
     url="https://github.com/benjaminfang/biobrary",
     author="Benjamin Fang",
     author_email="benjaminfang.ol@outlook.com",
@@ -19,5 +21,4 @@ setuptools.setup(
     ],
     keywords="bioinformatics, file_parser",
     packages=setuptools.find_packages(),
-
 )
