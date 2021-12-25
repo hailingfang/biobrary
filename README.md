@@ -3,6 +3,11 @@
 ## Introduction
 Biobrary is a python library, which contain data and methods for biological computation.
 
+## Requirement  
+* ete3
+    pyqt5 is needed by ete3. you maybe need install it manually.
+ 
+
 ## Install  
 * using pip  
 `pip install biobrary --user`
