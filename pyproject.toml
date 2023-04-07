@@ -1,2 +1,21 @@
 [build-system]
 requires=["setuptools", "wheel"]
+
+[project]
+name = "biobrary"
+version = "0.1.1"
+authors = [{name="Benjamin Fang", email="benjaminfang.ol@outlook.com"}]
+description = "A library for biological computing works"
+readme = "README.md"
+requires-python = ">=3.6"
+license = {text = "MIT License"}
+keywords = ["biobrary", "bioparse", "tree"]
+classifiers = ["Programming Language :: Python :: 3"]
+dependencies = [
+    "ete3>=3.1.1",
+    "numpy>=1.21.2",
+    "six>=1.15.0"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/benjaminfang/biobrary"
