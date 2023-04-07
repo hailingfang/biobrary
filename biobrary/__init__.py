@@ -1,7 +1,7 @@
-import biobrary.bioparser as bioparser
-import biobrary.biocodon as biocodon
-import biobrary.amino_acids_mw as amino_acids_mw
+from . import biocodon
+from . import amino_acids_mw
+from . import score_matrix
+from . import tree
+from . import bioparse
 
-import biobrary.CircleNode as CircleNode
-
-import biobrary.score_matrix as score_matrix
+version = "0.1.1"
