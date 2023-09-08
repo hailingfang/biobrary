@@ -21,6 +21,29 @@ CODON_AA={'TTT':'F','TTC':'F',
           'TAA':'*','TAG':'*','TGA':'*',
          }
 
+codon_AA={'ttt':'F','ttc':'F',
+          'tta':'L','ttg':'L','ctt':'L','ctc':'L','cta':'L','ctg':'L',
+          'att':'I','atc':'I','ata':'I',
+          'atg':'M',
+          'gtt':'V','gtc':'V','gta':'V','gtg':'V',
+          'tct':'S','tcc':'S','tca':'S','tcg':'S','agt':'S','agc':'S',
+          'cct':'P','ccc':'P','cca':'P','ccg':'P',
+          'act':'T','acc':'T','aca':'T','acg':'T',
+          'gct':'A','gcc':'A','gca':'A','gcg':'A',
+          'tat':'Y','tac':'Y',
+          'cat':'H','cac':'H',
+          'caa':'Q','cag':'Q',
+          'aat':'N','aac':'N',
+          'aaa':'K','aag':'K',
+          'gat':'D','gac':'D',
+          'gaa':'E','gag':'E',
+          'tgt':'C','tgc':'C',
+          'tgg':'W',
+          'cgt':'R','cgc':'R','cga':'R','cgg':'R','aga':'R','agg':'R',
+          'ggt':'G','ggc':'G','gga':'G','ggg':'G',
+          'taa':'*','tag':'*','tga':'*',
+         }
+
 
 base_complement = {'A':'T', 'T':'A', 'G':'C', 'C':'G', 'N':'N', 'a':'t', 't':'a', 'c':'g', 'g':'c', 'n':'n'}
 
