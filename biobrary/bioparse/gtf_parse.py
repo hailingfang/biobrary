@@ -4,6 +4,7 @@ import re
 
 class Gtf_gene:
     def __init__(self, gene_raw_dt):
+        self.gene_id = None
         self.gene = None
         self.transcript = None
         self.exon = None
@@ -50,6 +51,8 @@ class Gtf_gene:
                 gene_dt["attr"]["description"] = attrib_dic.get("description", None)
                 gene_dt["attr"]["pseudo"] = attrib_dic.get("pseudo", "false")
                 gene_dt["attr"]["gene_synonym"] = attrib_dic.get("gene_synonym", None)
+
+                self.gene_id = attrib_dic["gene_id"]
                 
             
             elif feature == "transcript":
@@ -125,23 +128,23 @@ class Gtf_gene:
     
 
     def get_gene(self):
-        return self.gene
+        return self.gene_id, self.gene
 
 
     def get_transcipt(self):
-        return self.transcript
+        return self.gene_id, self.transcript
 
 
     def get_exon(self):
-        return self.exon
+        return self.gene_id, self.exon
 
 
     def get_CSD(self):
-        return self.CDS
+        return self.gene_id, self.CDS
 
 
     def get_start_stop(self):
-        return self.start_stop
+        return self.gene_id, self.start_stop
 
 
 class GTF_parser:
