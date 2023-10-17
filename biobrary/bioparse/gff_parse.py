@@ -1,4 +1,4 @@
-class Gff_parser:
+class GFF_parser:
     """
     This class was used to parse for gff file version3.
     Thist class just offer a data structure for GFF file.

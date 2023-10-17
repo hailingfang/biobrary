@@ -333,7 +333,7 @@ class LOCUS:
 
 
 
-class GBFF_parse:
+class GBFF_parser:
     """
     Parse gbff file.
     gbff_data = GBFF_parse(gbff_file_name)

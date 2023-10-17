@@ -21,7 +21,7 @@ class Fasta_block:
         pass
 
 
-class Fasta_parser:
+class FASTA_parser:
     """
         This class was writed to parse fasta file.
     """

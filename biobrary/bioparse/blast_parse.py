@@ -1,4 +1,4 @@
-class Blast_parse:
+class BLAST_parser:
     """
         This is a Class for Blast result. the out format of blast is 0.
     """
