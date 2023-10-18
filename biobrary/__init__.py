@@ -1,5 +1,5 @@
 from . import biocodon
-from . import amino_acids_mw
+from . import molecular_weight
 from . import score_matrix
 from . import tree
 from . import bioparse
