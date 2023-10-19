@@ -60,6 +60,7 @@ class Seq:
             weight = 0
             for p in self.seq:
                 weight += amino_acids_mw[p.upper()]
+            weight -= (len(self.seq) - 1) * 18
             return weight
         else:
             return 0
