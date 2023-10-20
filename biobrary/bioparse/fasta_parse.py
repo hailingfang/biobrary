@@ -4,7 +4,7 @@ import sys
 
 class Fasta_seq:
     """
-        Data block class
+    Fasta data block class.
     """
     def __init__(self, seqid, seqdata, seqid_append=None, seqid_make_func=None):
         self.seqid = seqid
@@ -19,12 +19,16 @@ class Fasta_seq:
 
 
     def substr(self, left, right):
+        """return substr of seqdata"""
+
         if left > right or left > self.seqlen or right > self.seqlen:
             print("Wraning, illeagl left or right border", file=sys.stderr)            
         return self.seqdata[left - 1: right]
     
 
     def print(self, width=80, seqid_make_func=None, file=sys.stdout):
+        """print fastq seqdata"""
+
         if not seqid_make_func and self.seqid_make_func:
             seqid_make_func = self.seqid_make_func
         if seqid_make_func:
@@ -42,7 +46,7 @@ class Fasta_seq:
 
 class FASTA:
     """
-        This class was writed to parse fasta file.
+    This class was writed to parse fasta file.
     """
     def __init__(self, fasta_file, seqid_format_func=None):
         if not os.path.exists(fasta_file):
@@ -74,6 +78,9 @@ class FASTA:
 
 
     def index_file(self):
+        """
+        Index file seek position for every seqid.
+        """
         if not self.indexed:
             seqid_format_func = self.seqid_format_func
             fin = open(self.file_name, "r" )
@@ -105,14 +112,20 @@ class FASTA:
 
 
     def get_seqids(self):
+        """reture all seqid by order along with the fasta file"""
         return self.seqid_order
     
     
     def get_seqid_info(self, seqid):
+        """return seq information of seqid"""
+
         return self.seqid_info[seqid]
     
 
     def get_seq(self, seqid):
+        """
+        Input a seqid, and return a instance of Fasta_data class.
+        """
         dt_seek_pos = self.seqid_seek.get(seqid)
         if dt_seek_pos != 0 and not dt_seek_pos:
             print("sequence id not found ...", file=sys.stderr)
@@ -137,8 +150,7 @@ class FASTA:
 
 
 if __name__ == "__main__":
-    '''
-        For test purpose.
-    '''
+    """For test purpose."""
+
     fasta = FASTA(sys.argv[1])
     
