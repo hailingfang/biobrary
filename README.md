@@ -1,24 +1,34 @@
 # Biobrary
 
 ## Introduction
+
 Biobrary is a python library, which contain data and methods for biological computation.
 
 ## Requirement  
+
 * ete3
+
     pyqt5 is needed by ete3. you maybe need install it manually.
  
 
 ## Install  
+
 * using pip  
+
 `pip install biobrary --user`
 
 * manally install  
+
 `git clone https://github.com/benjaminfang/biobrary.git`  
+
 `cd biobrary`  
-`mv biobrary PYTHONPATH`  
+
+`mv biobrary $PYTHONPATH`  
+
 where PYTHONPATH is python library searching path.
 
 ## Usage  
+
 ```
 import biobrary  
 dir(biobrary)  
@@ -26,27 +36,30 @@ dir(biobrary)
 
 ## Data and Method  
 
-* biopaser  
-    * Fasta_parser  
+* bioparse  
+
+    * FASTA  
+
         class for fasta file.
-    * Gff_parser  
+
+    * GTF  
+
+        class for gtf file.
+
+    * GFF
+
         class for gff file.
 
 
 * biocondon  
-    * CODON_AA  
-        python dictionary of codon and amino acids.  
-    * base_complement
-    * start_codon
-    * stop_codon
-
 
 
 * amino_acids_mw  
 
+* tree
 
+    * CircleNode  
 
-* CircleNode  
-    class for phylogenic tree traverse and operations. And divide tree to circle node according
-    to phylogenic distance.
+        class for phylogenic tree traverse and operations. And divide tree to circle node according
+        to phylogenic distance.
     
