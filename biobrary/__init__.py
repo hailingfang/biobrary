@@ -5,4 +5,4 @@ from . import tree
 from . import bioparse
 from . import seq
 
-version = "0.1.2"
+version = "0.1.3"
