@@ -124,7 +124,16 @@ class FASTA:
 
     def get_seq(self, seqid):
         """
-        Input a seqid, and return a instance of Fasta_data class.
+        Make fasta seq instance
+
+        Parameters
+        --------------
+        seqid : a string
+            fastq sequence id.
+
+        Returns
+        ------------
+        Fasta_data : A instance of Fasta data
         """
         dt_seek_pos = self.seqid_seek.get(seqid)
         if dt_seek_pos != 0 and not dt_seek_pos:
