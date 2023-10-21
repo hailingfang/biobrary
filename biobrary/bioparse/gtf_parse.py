@@ -22,16 +22,20 @@ class Gtf_gene:
             seqname, source, feature, left, right, score, ori, frame, attrib = line
             attrib = [ele.strip() for ele in attrib.split(";")][:-1]
             
-            attrib_dic = {"db_xref": [], "gene_synonym": []}
+            attrib_dic = {"db_xref": [], "gene_synonym": [], "transl_except": [], "inference": []}
+            multi_attr = ["db_xref", "gene_synonym", "inference", "transl_except"]
             for ele in attrib:
                 idx = ele.index(" ")
                 key = ele[:idx]
                 value = ele[idx+1:].strip('"')
                 if len(value) > 0:
-                    if value in attrib_dic:
+                    if key in attrib_dic and key in multi_attr:
                         attrib_dic[key].append(value)
+                    elif key not in attrib_dic:
+                        attrib_dic[key] = value
                     else:
                         attrib_dic[key] = value
+                        print(f"To developer: {key} is a new attributate", file=sys.stderr)
 
 
             if feature == "gene":
@@ -96,25 +100,19 @@ class Gtf_gene:
                     cds_dt[transid]["CDS_range"].append((int(left), int(right)))
                     cds_dt[transid]["frame"].append(int(frame))
                     cds_dt[transid]["exon_number"].append(int(exon_number))
+                start_stop_dt[transid] = {"start_codon": None, "stop_codon": None, "protein_id": proteinid}
 
 
             elif feature == "start_codon":
                 transid = attrib_dic["transcript_id"]
                 proteinid = attrib_dic.get("protein_id", None)
-                if transid not in start_stop_dt:
-                    start_stop_dt[transid] = {"start_codon": (int(left), int(right)), "stop_codon": None, "protein_id": proteinid}
-                else:
-                    start_stop_dt[transid]["start_codon"] = (int(left), int(right))
+                start_stop_dt[transid]["start_codon"] = (int(left), int(right))
 
 
             elif feature == "stop_codon":
                 transid = attrib_dic["transcript_id"]
                 proteinid = attrib_dic.get("protein_id", None)
-                
-                if transid not in start_stop_dt:
-                    start_stop_dt[transid] = {"start_codon": None, "stop_codon": (int(left), int(right)), "protein_id": proteinid}
-                else:
-                    start_stop_dt[transid]["stop_codon"] = (int(left), int(right))
+                start_stop_dt[transid]["stop_codon"] = (int(left), int(right))
 
             else:
                 print(f"{feature} not expected by the utility", file=sys.stderr)
@@ -131,7 +129,7 @@ class Gtf_gene:
         return self.gene_id, self.gene
 
 
-    def get_transcipt(self):
+    def get_transcript(self):
         return self.gene_id, self.transcript
 
 
@@ -147,14 +145,17 @@ class Gtf_gene:
         return self.gene_id, self.start_stop
 
 
-class GTF_parser:
+class GTF:
     def __init__(self, gtf_file):
         self.data = []
+        self.meta = None
+        self.geneids = None
+        self.geneid_index = {}
 
-        dt = []
+        data = []
         fin = open(gtf_file, "r")
         for line in fin:
-            dt.append(line.rstrip())
+            data.append(line.rstrip())
         fin.close()
 
         meta = []
@@ -170,64 +171,43 @@ class GTF_parser:
         if dt[-1][0] == "#":
             dt = dt[:-1]
         
-        gene_block = {}
+        gtf_gene_data = {}
+        index = 0
         key = None
-        retmp = re.compile(r'^gene_id\s"(.+?)"')
         for line in dt:
             line = line.split("\t")
             feature = line[2]
-            attrib = line[8]
 
             if feature == "gene":
-                key = retmp.match(attrib).groups()[0]
-                gene_block[key] = [line]
+                index += 1
+                key = index
+                gtf_gene_data[key] = [line]
                 continue
-            gene_block[key].append(line)
+            gtf_gene_data[key].append(line)
         
-        for gene in gene_block:
-            self.data.append(Gtf_gene(gene_block[gene]))
+        for key in gtf_gene_data:
+            self.data.append(Gtf_gene(gtf_gene_data[key]))
         
 
-    def get_gene(self):
-        dt_out = []
+    def __iter__(self):
+        pass
+
+
+    def __next__(self):
+        pass
+
+
+    def get_geneids(self):
+        geneids = []
         for gene in self.data:
-            dt_out.append(gene.get_gene())
-        return dt_out
+            geneids.append(gene.get_gene())
+        return geneids
 
 
-    def get_transcript(self):
-        dt_out = []
-        for gene in self.data:
-            dt_out.append(gene.get_transcript)
-
-        return dt_out
-
-
-    def get_exon(self):
-        dt_out = []
-        for gene in self.data:
-            dt_out.append(gene.get_exon())
-
-        return dt_out
-
-
-    def get_CDS(self):
-        dt_out = []
-        for gene in self.data:
-            dt_out.append(gene.get_CSD())
-        return dt_out
-
-    def get_start_stop(self):
-        dt_out = []
-        for gene in self.data:
-            dt_out.append(gene.get_start_stop())
-
-        return dt_out
-
-
+    def get_gene(self, geneid):
+        return self.data[self.geneid_index[geneid]]
 
 
 if __name__ == "__main__":
     import sys
-    gtf = Gtf_parser(sys.argv[1])
-    gene_list = gtf.get_gene()
+    pass
