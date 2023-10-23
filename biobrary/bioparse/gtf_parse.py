@@ -4,145 +4,254 @@ import re
 
 class Gtf_gene:
     def __init__(self, gene_raw_dt):
-        self.gene_id = None
-        self.gene = None
-        self.transcript = None
-        self.exon = None
-        self.CSD = None
-        self.start_stop = None
-        
-        gene_dt = {}
-        transcript_dt = {}
-        exon_dt = {}
-        cds_dt = {}
-        start_stop_dt = {}
+        """
+        Construct Gtf_gene object
 
+        Parameters
+        -------------
+        gene_gtf_liens : lines related to one gene
 
+        Returns
+        ------------
+        None
+
+        self.data
+        ---------------
+        {transid: {exon: {exon_number}, CDS: [proteinid, {exon_number: {}}]}, ...}
+
+        """
+        self.geneid = None
+        self.data = None
+        self.seqname = None
+        self.source = None
+        self.left = None
+        self.right = None
+        self.ori = None
+        self.gene_biotype = None
+        self.attr = None
+
+        data = {}
         for line in gene_raw_dt:
             seqname, source, feature, left, right, score, ori, frame, attrib = line
-            attrib = [ele.strip() for ele in attrib.split(";")][:-1]
-            
-            attrib_dic = {"db_xref": [], "gene_synonym": [], "transl_except": [], "inference": []}
-            multi_attr = ["db_xref", "gene_synonym", "inference", "transl_except"]
+            attrib = [ele.strip() for ele in attrib.split(";")[:-1]]
+            attrib_dic = {}
             for ele in attrib:
                 idx = ele.index(" ")
                 key = ele[:idx]
                 value = ele[idx+1:].strip('"')
                 if len(value) > 0:
-                    if key in attrib_dic and key in multi_attr:
+                    if value in attrib_dic:
                         attrib_dic[key].append(value)
-                    elif key not in attrib_dic:
-                        attrib_dic[key] = value
                     else:
-                        attrib_dic[key] = value
-                        print(f"To developer: {key} is a new attributate", file=sys.stderr)
-
+                        attrib_dic[key] = [value]
 
             if feature == "gene":
-                gene_dt["gene_id"] = attrib_dic["gene_id"]
-                gene_dt["refseq"] = seqname
-                gene_dt["source"] = source
-                gene_dt["left"] = int(left)
-                gene_dt["right"] = int(right)
-                gene_dt["score"] = score
-                gene_dt["ori"] = ori
-                gene_dt["attr"] = {}
-
-                gene_dt["attr"]["gene"] = attrib_dic["gene"]
-                gene_dt["attr"]["gene_biotype"] = attrib_dic["gene_biotype"]
-                gene_dt["attr"]["gbkey"] = attrib_dic["gbkey"]
-                gene_dt["attr"]["db_xref"] = attrib_dic["db_xref"]
-                gene_dt["attr"]["description"] = attrib_dic.get("description", None)
-                gene_dt["attr"]["pseudo"] = attrib_dic.get("pseudo", "false")
-                gene_dt["attr"]["gene_synonym"] = attrib_dic.get("gene_synonym", None)
-
-                self.gene_id = attrib_dic["gene_id"]
-                
-            
+                assert len(attrib_dic["gene_id"]) == 1
+                assert frame == "."
+                self.geneid = attrib_dic["gene_id"][0]
+                self.seqname = seqname
+                self.source = source
+                self.left = int(left)
+                self.right = int(right)
+                self.ori = ori
+                self.gene_biotype = attrib_dic["gene_biotype"][0]
+                self.attr = attrib_dic
             elif feature == "transcript":
-                trans_dt_ele = {}
-                transid = attrib_dic["transcript_id"]
-                gbkey = attrib_dic["gbkey"]
-                trans_biotype = attrib_dic["transcript_biotype"]
-                product = attrib_dic.get("product", None)
-                model_evidence = attrib_dic.get("model_evidence", None)
-
-                trans_dt_ele["trans_id"] = transid
-                trans_dt_ele["left"] = int(left)
-                trans_dt_ele["right"] = int(right)
-                trans_dt_ele["attr"] = {}
-
-                trans_dt_ele["attr"]["gbkey"] = gbkey
-                trans_dt_ele["attr"]["transript_biotype"] = trans_biotype
-                trans_dt_ele["attr"]["product"] = product
-                trans_dt_ele["attr"]["model_evidence"] = model_evidence
-                
-                transcript_dt[transid] = trans_dt_ele
-
-
+                assert frame == "."
+                geneid = attrib_dic[geneid][0]
+                transid = attrib_dic["transcript_id"][0]
+                assert geneid == self.geneid
+                assert transid not in data
+                data[transid] = {}
+                data[transid]["seqname"] = seqname
+                data[transid]["source"] = source
+                data[transid]["left"] = int(left)
+                data[transid]["right"] = int(right)
+                data[transid]["ori"] = ori
+                data[transid]["transcript_biotype"] = \
+                    attrib_dic["transcript_biotype"][0]
+                data[transid]["attr"] = attrib_dic
             elif feature == "exon":
-                transid = attrib_dic["transcript_id"]
-                exon_number = attrib_dic["exon_number"]
-                if transid not in exon_dt:
-                    exon_dt[transid] = {"exon_range": [(int(left), int(right))], "exon_number": [int(exon_number)]}
+                assert frame == "."
+                geneid = attrib_dic["gene_id"][0]
+                transid = attrib_dic["transcript_id"][0]
+                exon_number = attrib_dic["exon_number"][0]
+                assert geneid == self.geneid
+                if transid in data and ("exon" not in data[transid]):
+                    data[transid]["exon"] = {}
                 else:
-                    exon_dt[transid]["exon_range"].append((int(left), int(right)))
-                    exon_dt[transid]["exon_number"].append(int(exon_number))
-
-
+                    data[transid] = {}
+                    data[transid]["exon"] = {}
+                data[transid]["exon"][exon_number] = {}
+                data[transid]["exon"][exon_number]["left"] = int(left)
+                data[transid]["exon"][exon_number]["right"] = int(right)
+                data[transid]["exon"][exon_number]["ori"] = ori
             elif feature == "CDS":
-                transid = attrib_dic["transcript_id"]
-                proteinid = attrib_dic.get("protein_id", None)
-                exon_number = attrib_dic["exon_number"]
-                if transid not in cds_dt:
-                    cds_dt[transid] = {"CDS_range": [(int(left), int(right))], "protein_id": proteinid, "frame": [int(frame)], "exon_number": [int(exon_number)]}
-                else:
-                    cds_dt[transid]["CDS_range"].append((int(left), int(right)))
-                    cds_dt[transid]["frame"].append(int(frame))
-                    cds_dt[transid]["exon_number"].append(int(exon_number))
-                start_stop_dt[transid] = {"start_codon": None, "stop_codon": None, "protein_id": proteinid}
-
-
+                geneid = attrib_dic["gene_id"][0]
+                transid = attrib_dic["transcript_id"][0]
+                proteinid = attrib_dic["protein_id"][0]
+                exon_number = attrib_dic["exon_number"][0]
+                assert geneid == self.geneid
+                assert transid in data
+                if "CDS" not in data[transid]:
+                    data[transid]["CDS"] = [proteinid, {}]
+                data[transid]["CDS"][1][exon_number] = {}
+                data[transid]["CDS"][1][exon_number]["left"] = int(left)
+                data[transid]["CDS"][1][exon_number]["right"] = int(right)
+                data[transid]["CDS"][1][exon_number]["ori"] = ori
+                data[transid]["CDS"][1][exon_number]["frame"] = frame
             elif feature == "start_codon":
-                transid = attrib_dic["transcript_id"]
-                proteinid = attrib_dic.get("protein_id", None)
-                start_stop_dt[transid]["start_codon"] = (int(left), int(right))
-
-
+                geneid = attrib_dic["gene_id"][0]
+                transid = attrib_dic["transcript_id"][0]
+                proteinid = attrib_dic["protein_id"][0]
+                assert geneid == self.geneid
+                assert transid in data
+                assert proteinid == data[transid]["CDS"][0]
+                assert "start_codon" not in data[transid]
+                data[transid]["start_codon"] = [proteinid, {}]
+                data[transid]["start_codon"][1]["left"] = int(left)
+                data[transid]["start_codon"][1]["right"] = int(right)
+                data[transid]["start_codon"][1]["ori"] = ori
+                data[transid]["start_codon"][1]["frame"] = frame
             elif feature == "stop_codon":
-                transid = attrib_dic["transcript_id"]
-                proteinid = attrib_dic.get("protein_id", None)
-                start_stop_dt[transid]["stop_codon"] = (int(left), int(right))
-
+                geneid = attrib_dic["gene_id"][0]
+                transid = attrib_dic["transcript_id"][0]
+                proteinid = attrib_dic["protein_id"][0]
+                assert geneid == self.geneid
+                assert transid in data
+                assert proteinid == data[transid]["CDS"][0]
+                data[transid]["stop_codon"] = [proteinid, {}]
+                data[transid]["stop_codon"][1]["left"] = int(left)
+                data[transid]["stop_codon"][1]["right"] = int(right)
+                data[transid]["stop_codon"][1]["ori"] = ori
+                data[transid]["stop_codon"][1]["frame"] = frame
             else:
-                print(f"{feature} not expected by the utility", file=sys.stderr)
+                print(f"Warning, {feature} not recognized", file=sys.stderr)
 
 
-            self.gene = gene_dt
-            self.transcript = transcript_dt
-            self.exon = exon_dt
-            self.CDS = cds_dt
-            self.start_stop = start_stop_dt
+
+            self.data = data
+            self._check_transcript_data()
+
+        
+
+    def _check_transcript_data(self):
+        """
+        some gtf file do not have transcript line, make up info for such files
+        """
+        for transid in self.data:
+            if "left" not in self.data[transid]:
+                lefts = []
+                rights = []
+                oris = []
+                bio_type = []
+                if "exon" in self.data[transid]:
+                    for exon_num in self.data[transid]["exon"]:
+                        lefts.append(self.data[transid]["exon"][exon_num]["left"])
+                        rights.append(self.data[transid]["exon"][exon_num]["right"])
+                        oris.append(self.data[transid]["exon"][exon_num]["ori"])
+                        bio_type.append(self.data[transid]["exon"][exon_num]\
+                                        .get("gbkey"))
+                    lefts.sort()
+                    rights.sort()
+                    assert len(set(oris)) == 1
+                    assert len(set(bio_type)) == 1
+                    self.data[transid]["left"] = lefts[0]
+                    self.data[transid]["right"] = rights[-1]
+                    self.data[transid]["ori"] = oris[0]
+                    self.data[transid]["transcript_biotype"] = bio_type[0]
+                    self.data[transid]["seqname"] = self.seqname
+                    self.data[transid]["source"] = self.source
+                else:
+                    print("Error,transcript have no exon", file=sys.stderr)
+        
+        
+    def get_geneid(self):
+        return self.geneid
     
+    def get_geneid_range(self):
+        return (self.left, self.right, self.ori)
+    
+    def get_gene_type(self):
+        return self.gene_biotype
 
-    def get_gene(self):
-        return self.gene_id, self.gene
-
+    def if_protein_coding(self):
+        if self.gene_biotype == "protein_coding":
+            return True
+        return False
 
     def get_transcript(self):
-        return self.gene_id, self.transcript
+        trans_data = []
+        for transid in self.data:
+            data_entry = []
+            data_entry.append(transid)
+            data_entry.appen([self.data[transid]["left"],
+                              self.data[transid]["right"]])
+            data_entry.append(self.data[transid]["ori"])
+            data_entry.append(self.data[transid]["transcript_biotype"])
+            trans_data.append(data_entry)
+        
+        return trans_data
 
 
     def get_exon(self):
-        return self.gene_id, self.exon
+        exon_data = []
+        for transid in self.data:
+            if "exon" in self.data[transid]:
+                data_entry = []
+                data_entry.append(transid)
+                data_entry.append([])
+                for exon_num in self.data[transid]["exon"]:
+                    data_entry[1].append([exon_num,
+                                self.data[transid]["exon"][exon_num]["left"],
+                                self.data[transid]["exon"][exon_num]["right"]])
+                data_entry.append(self.data[transid]["exon"][exon_num]["ori"])
+                exon_data.append(data_entry)
+            
+        return exon_data
+    
 
+    def get_CDS(self):
+        CDS_data = []
+        for transid in self.data:
+            if "CDS" in self.data[transid]:
+                data_entry = []
+                data_entry.append(transid)
+                data_entry.append(self.data[transid]["CDS"][0])
+                data_entry.append([])
+                for exon_num in self.data[transid]["CDS"][1]:
+                    data_entry[2].append([exon_num,
+                                self.data[transid]["CDS"][exon_num]["left"],
+                                self.data[transid]["CDS"][exon_num]["left"]])
+                data_entry.append(self.data[transid]["CDS"][exon_num]["ori"])
+                CDS_data.append(data_entry)
+        return CDS_data
 
-    def get_CSD(self):
-        return self.gene_id, self.CDS
+        
+    def get_start_codon(self):
+        start_codon = []
+        for transid in self.data:
+            if "start_codon" in self.data[transid]:
+                start_codon.append(self.data[transid]["start_codon"][0])
+                start_codon.append([[self.data[transid]["start_condn"][1]["left"]],\
+                                    self.data[transid]["start_codon"][1]["right"]])
+                start_codon.append(self.data[transid]["start_codon"][1]["ori"])
+                start_codon.append(self.data[transid]["start_codon"][1]["frame"])
+        return start_codon
+                
 
+    def get_stop_codon(self):
+        stop_codon = []
+        for transid in self.data:
+            if "stop_codon" in self.data[transid]:
+                stop_codon.append(self.data[transid]["stop_codon"][0])
+                stop_codon.append([[self.data[transid]["start_condn"][1]["left"]],\
+                                    self.data[transid]["stop_codon"][1]["right"]])
+                stop_codon.append(self.data[transid]["stop_codon"][1]["ori"])
+                stop_codon.append(self.data[transid]["stop_codon"][1]["frame"])
+        return stop_codon
+    
 
-    def get_start_stop(self):
-        return self.gene_id, self.start_stop
 
 
 class GTF:
@@ -160,21 +269,21 @@ class GTF:
 
         meta = []
         meta_line_count = 0
-        for line in dt:
+        for line in data:
             if line[0] == "#":
                 meta_line_count += 1
                 meta.append(line)
             else:
                 break
         self.meta = meta
-        dt = dt[meta_line_count:]
-        if dt[-1][0] == "#":
-            dt = dt[:-1]
+        data = data[meta_line_count:]
+        if data[-1][0] == "#":
+            data = data[:-1]
         
         gtf_gene_data = {}
         index = 0
         key = None
-        for line in dt:
+        for line in data:
             line = line.split("\t")
             feature = line[2]
 
