@@ -58,7 +58,7 @@ class Gtf_gene:
                 self.attr = attrib_dic
             elif feature == "transcript":
                 assert frame == "."
-                geneid = attrib_dic[geneid][0]
+                geneid = attrib_dic["gene_id"][0]
                 transid = attrib_dic["transcript_id"][0]
                 assert geneid == self.geneid
                 assert transid not in data
@@ -88,8 +88,13 @@ class Gtf_gene:
                 data[transid]["exon"][exon_number]["ori"] = ori
             elif feature == "CDS":
                 geneid = attrib_dic["gene_id"][0]
+                print(geneid)
                 transid = attrib_dic["transcript_id"][0]
-                proteinid = attrib_dic["protein_id"][0]
+                proteinid = attrib_dic.get("protein_id")
+                if proteinid:
+                    proteinid = proteinid[0]
+                else:
+                    proteinid = None
                 exon_number = attrib_dic["exon_number"][0]
                 assert geneid == self.geneid
                 assert transid in data
@@ -103,35 +108,46 @@ class Gtf_gene:
             elif feature == "start_codon":
                 geneid = attrib_dic["gene_id"][0]
                 transid = attrib_dic["transcript_id"][0]
-                proteinid = attrib_dic["protein_id"][0]
+                proteinid = attrib_dic.get("protein_id")
+                if proteinid:
+                    proteinid = proteinid[0]
+                else:
+                    proteinid = None
+                exon_number = attrib_dic["exon_number"][0]
+
                 assert geneid == self.geneid
                 assert transid in data
                 assert proteinid == data[transid]["CDS"][0]
-                assert "start_codon" not in data[transid]
-                data[transid]["start_codon"] = [proteinid, {}]
-                data[transid]["start_codon"][1]["left"] = int(left)
-                data[transid]["start_codon"][1]["right"] = int(right)
-                data[transid]["start_codon"][1]["ori"] = ori
-                data[transid]["start_codon"][1]["frame"] = frame
+                if "start_codon" not in data[transid]:
+                    data[transid]["start_codon"] = [proteinid, {}]
+                data[transid]["start_codon"][1][exon_number] = {}    
+                data[transid]["start_codon"][1][exon_number]["left"] = int(left)
+                data[transid]["start_codon"][1][exon_number]["right"] = int(right)
+                data[transid]["start_codon"][1][exon_number]["ori"] = ori
+                data[transid]["start_codon"][1][exon_number]["frame"] = frame
             elif feature == "stop_codon":
                 geneid = attrib_dic["gene_id"][0]
                 transid = attrib_dic["transcript_id"][0]
-                proteinid = attrib_dic["protein_id"][0]
+                proteinid = attrib_dic.get("protein_id")
+                if proteinid:
+                    proteinid = proteinid[0]
+                else:
+                    proteinid = None
+                exon_number = attrib_dic["exon_number"][0]
                 assert geneid == self.geneid
                 assert transid in data
                 assert proteinid == data[transid]["CDS"][0]
-                data[transid]["stop_codon"] = [proteinid, {}]
-                data[transid]["stop_codon"][1]["left"] = int(left)
-                data[transid]["stop_codon"][1]["right"] = int(right)
-                data[transid]["stop_codon"][1]["ori"] = ori
-                data[transid]["stop_codon"][1]["frame"] = frame
+                if "stop_codon" not in data[transid]:
+                    data[transid]["stop_codon"] = [proteinid, {}]
+                data[transid]["stop_codon"][1][exon_number] = {}
+                data[transid]["stop_codon"][1][exon_number]["left"] = int(left)
+                data[transid]["stop_codon"][1][exon_number]["right"] = int(right)
+                data[transid]["stop_codon"][1][exon_number]["ori"] = ori
+                data[transid]["stop_codon"][1][exon_number]["frame"] = frame
             else:
                 print(f"Warning, {feature} not recognized", file=sys.stderr)
-
-
-
-            self.data = data
-            self._check_transcript_data()
+        self.data = data
+        self._check_transcript_data()
 
         
 
@@ -319,4 +335,4 @@ class GTF:
 
 if __name__ == "__main__":
     import sys
-    pass
+    gtf = GTF(sys.argv[1])
