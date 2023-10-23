@@ -25,6 +25,8 @@ class Fasta_seq:
             print("Wraning, illeagl left or right border", file=sys.stderr)            
         return self.seqdata[left - 1: right]
     
+    def get_seqid(self):
+        return self.seqid
 
     def print(self, width=80, seqid_make_func=None, file=sys.stdout):
         """print fastq seqdata"""
