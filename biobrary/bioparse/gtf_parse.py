@@ -88,7 +88,6 @@ class Gtf_gene:
                 data[transid]["exon"][exon_number]["ori"] = ori
             elif feature == "CDS":
                 geneid = attrib_dic["gene_id"][0]
-                print(geneid)
                 transid = attrib_dic["transcript_id"][0]
                 proteinid = attrib_dic.get("protein_id")
                 if proteinid:
@@ -315,11 +314,15 @@ class GTF:
         
 
     def __iter__(self):
-        pass
-
+        self.start = 0
+        self.stop = len(self.data)
+        return self
 
     def __next__(self):
-        pass
+        if self.start == self.stop:
+            raise StopIteration
+        self.start += 1
+        return self.data[self.start - 1]
 
 
     def get_geneids(self):
