@@ -110,7 +110,7 @@ class GTF_CDS(GTF_base):
         self.attr = attrib_dic
 
 
-class GTF_exon:
+class GTF_exon(GTF_base):
     def __init__(self, exon_data):
         self.seqname = None
         self.source = None
