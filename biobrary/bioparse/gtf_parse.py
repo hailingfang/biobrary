@@ -21,7 +21,7 @@ class GTF_base:
             return None
 
     def get_info(self):
-        return [self.seqname, self.source ,self.pos[0], self.ori]
+        return [self.seqname, self.source ,self.pos, self.ori, self.frame]
 
     def get_gbkey(self):
         if self.attr.get("gbkey"):
@@ -34,9 +34,9 @@ class GTF_stop_codon(GTF_base):
     def __init__(self, stop_codon_data): 
         self.seqname = None
         self.source = None
-        self.pos = None
+        self.pos = []
         self.ori = None
-        self.frame = None
+        self.frame = []
         self.attr = {}
 
         seqname, source, feature, left, right, score, ori, frame, attrib_dic = \
@@ -61,9 +61,9 @@ class GTF_start_codon(GTF_base):
     def __init__(self, start_codon_data):
         self.seqname = None
         self.source = None
-        self.pos = None
+        self.pos = []
         self.ori = None
-        self.frame = None
+        self.frame = []
         self.attr = {}
 
         seqname, source, feature, left, right, score, ori, frame, attrib_dic = \
@@ -87,9 +87,9 @@ class GTF_CDS(GTF_base):
     def __init__(self, cds_data):
         self.seqname = None
         self.source = None
-        self.pos = None
+        self.pos = []
         self.ori = None
-        self.frame = None
+        self.frame = []
         self.attr = {}
 
         seqname, source, feature, left, right, score, ori, frame, attrib_dic = \
@@ -114,10 +114,10 @@ class GTF_exon:
     def __init__(self, exon_data):
         self.seqname = None
         self.source = None
-        self.pos = None
+        self.pos = []
         self.ori = None
-        self.frame = None
-        self.attr = None
+        self.frame = []
+        self.attr = {}
 
         seqname, source, feature, left, right, score, ori, frame, attrib_dic = \
             exon_data[0]
@@ -140,10 +140,10 @@ class GTF_transcript(GTF_base):
     def __init__(self, data_in):
         self.seqname = None
         self.source = None
-        self.pos = None
+        self.pos = []
         self.ori = None
-        self.frame = None
-        self.attr = None
+        self.frame = []
+        self.attr = {}
         self.child = []
 
         data_splited = {}
@@ -182,7 +182,7 @@ class GTF_transcript(GTF_base):
             self.source = source
             self.pos = [[int(left), int(right)]]
             self.ori = ori
-            self.frame = frame
+            self.frame = [frame]
             self.attr = attrib_dic
             data_splited.pop("transcipt")
         else:
@@ -259,10 +259,10 @@ class GTF_gene(GTF_base):
 
         self.seqname = None
         self.source = None
-        self.pos = None
+        self.pos = []
         self.ori = None
-        self.frame = None
-        self.attr = None
+        self.frame = []
+        self.attr = {}
         self.child = []
 
         gene_line = gene_raw_dt[0]
@@ -272,6 +272,7 @@ class GTF_gene(GTF_base):
         self.source = source
         self.pos = [[int(left), int(right)]]
         self.ori = ori
+        self.frame = [frame]
         self.attr = attrib_dic
         assert "gene_id" in self.attr
 
@@ -289,7 +290,7 @@ class GTF_gene(GTF_base):
         for transid in data:
             self.child.append(GTF_transcript(data[transid]))
 
-    def get_transctipt(self):
+    def get_transcript(self):
         return self.child
 
 
