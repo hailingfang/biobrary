@@ -40,3 +40,15 @@ def merge_isolands(isolands):
             one_isol = []
 
     return isolands_merged
+
+
+def change_coordinate(left, positions, cor="relative"):
+    new_pos = []
+    if cor == "relative":
+        for pos in positions:
+            new_pos.append([pos[0] - left + 1, pos[1] - left + 1])
+    elif cor == "absolute":
+        for pos in positions:
+            new_pos.append([pos[0] + left - 1, pos[1] + left - 1])
+
+    return new_pos
