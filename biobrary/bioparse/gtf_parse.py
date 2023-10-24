@@ -214,6 +214,9 @@ class GTF_transcript(GTF_base):
                 print("Error, this should never happend", file=sys.stderr)
                 exit()
 
+    def get_child(self):
+        return self.child
+
     def get_exon(self):
         if self.child[0]:
             return self.child[0]
