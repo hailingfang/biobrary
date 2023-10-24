@@ -1,3 +1,5 @@
+import sys
+
 class GTF_stop_codon:
     def __init__(self, stop_codon_data): 
         self.seqname = None
@@ -11,14 +13,16 @@ class GTF_stop_codon:
             stop_codon_data[0]
         lefts = [int(left)]
         rights = [int(right)]
+        frames = []
         for line in stop_codon_data[1:]:
             lefts.append(int(line[3]))
             rights.append(int(line[4]))
+            frames.append(frame)
         self.seqname = seqname
         self.source = source
         self.pos = [[ele[0], ele[1]] for ele in zip(lefts, rights)]
         self.ori = ori
-        self.frame = frame
+        self.frame = frames
         self.attr = attrib_dic
         
 
@@ -36,14 +40,16 @@ class GTF_start_codon:
             start_codon_data[0]
         lefts = [int(left)]
         rights = [int(right)]
+        frames = []
         for line in start_codon_data[1:]:
             lefts.append(int(line[3]))
             rights.append(int(line[4]))
+            frames.append(line[7])
         self.seqname = seqname
         self.source = source
         self.pos = [[ele[0], ele[1]] for ele in zip(lefts, rights)]
         self.ori = ori
-        self.frame = frame
+        self.frame = frames
         self.attr = attrib_dic
 
 
@@ -61,14 +67,16 @@ class GTF_CDS:
 
         lefts = [int(left)]
         rights = [int(right)]
+        frames = [frame]
         for line in cds_data[1:]:
             lefts.append(int(line[3]))
             rights.append(int(line[4]))
+            frames.append(line[7])
         self.seqname = seqname
         self.source = source
         self.pos = [[ele[0], ele[1]] for ele in zip(lefts, rights)]
         self.ori = ori
-        self.frame = frame
+        self.frame = frames
         self.attr = attrib_dic
 
 
@@ -85,14 +93,16 @@ class GTF_exon:
             exon_data[0]
         lefts = [int(left)]
         rights = [int(right)]
+        frames = [frame]
         for line in exon_data[1:]:
             lefts.append(int(line[3]))
             rights.append(int(line[4]))
+            frames.append(line[7])
         self.seqname = seqname
         self.source = source
         self.pos = [[ele[0], ele[1]] for ele in zip(lefts, rights)]
         self.ori = ori
-        self.frame = frame
+        self.frame = frames
         self.attr = attrib_dic
 
 
@@ -146,23 +156,33 @@ class GTF_transcript:
             self.attr = attrib_dic
             data_splited.pop("transcipt")
         else:
-            assert "exon" in data_splited
-            seqname, source, feature, left, right, score, ori, frame, attrib_dic\
-                = data_splited["exon"][0]
-            lefts = [int(left)]
-            rights = [int(right)]
-            for line in data_splited["exon"][1:]:
-                lefts.append(int(line[3]))
-                rights.append(int(line[4]))
-            lefts.sort()
-            rights.sort()
-            self.seqname = seqname
-            self.source = source
-            self.pos = [[lefts[0], rights[-1]]]
-            self.ori = ori
-            self.frame = frame
-            self.attr = attrib_dic
-        
+            if self.child[0]:
+                self.seqname = child[0].seqname
+                self.source = child[0].source
+                pos = child[0].pos
+                lefts = [ele[0] for ele in pos]
+                rights = [ele[1] for ele in pos]
+                lefts.sort()
+                rights.sort()
+                self.pos = [[lefts[0], rights[-1]]]
+                self.ori = child[0].ori
+                self.frame = child[0].frame
+                self.attr = child[0].attr
+            elif self.child[1]:
+                self.seqname = child[1].seqname
+                self.source = child[1].source
+                pos = child[1].pos
+                lefts = [ele[0] for ele in pos]
+                rights = [ele[1] for ele in pos]
+                lefts.sort()
+                rights.sort()
+                self.pos = [[lefts[0], rights[-1]]]
+                self.ori = child[1].ori
+                self.frame = child[1].frame
+                self.attr = child[1].attr
+            else:
+                print("Error, this should never happend", file=sys.stderr)
+                exit()
 
 
 class GTF_gene:
