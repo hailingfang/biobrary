@@ -1,14 +1,44 @@
 import sys
 
-class GTF_stop_codon:
+
+class GTF_base:
+    def get_geneid(self):
+        if self.attr.get("gene_id"):
+            return self.attr["gene_id"][0]
+        else:
+            return None
+
+    def get_transid(self):
+        if self.attr.get("transcript_id"):
+            return self.attr["transcript_id"][0]
+        else:
+            return None
+
+    def get_proteinid(self):
+        if self.attr.get("proteinid"):
+            return self.attr["proteinid"][0]
+        else:
+            return None
+
+    def get_info(self):
+        return [self.seqname, self.source ,self.pos[0], self.ori]
+
+    def get_gbkey(self):
+        if self.attr.get("gbkey"):
+            return self.attr["gbkey"][0]
+        else:
+            return None
+
+
+class GTF_stop_codon(GTF_base):
     def __init__(self, stop_codon_data): 
         self.seqname = None
         self.source = None
         self.pos = None
         self.ori = None
         self.frame = None
-        self.attr = None
-        self.child = []
+        self.attr = {}
+
         seqname, source, feature, left, right, score, ori, frame, attrib_dic = \
             stop_codon_data[0]
         lefts = [int(left)]
@@ -24,18 +54,18 @@ class GTF_stop_codon:
         self.ori = ori
         self.frame = frames
         self.attr = attrib_dic
-        
 
 
-class GTF_start_codon:
+
+class GTF_start_codon(GTF_base):
     def __init__(self, start_codon_data):
         self.seqname = None
         self.source = None
         self.pos = None
         self.ori = None
         self.frame = None
-        self.attr = None
-        self.child = []
+        self.attr = {}
+
         seqname, source, feature, left, right, score, ori, frame, attrib_dic = \
             start_codon_data[0]
         lefts = [int(left)]
@@ -53,14 +83,14 @@ class GTF_start_codon:
         self.attr = attrib_dic
 
 
-class GTF_CDS:
+class GTF_CDS(GTF_base):
     def __init__(self, cds_data):
         self.seqname = None
         self.source = None
         self.pos = None
         self.ori = None
         self.frame = None
-        self.attr = None
+        self.attr = {}
 
         seqname, source, feature, left, right, score, ori, frame, attrib_dic = \
             cds_data[0]
@@ -106,7 +136,7 @@ class GTF_exon:
         self.attr = attrib_dic
 
 
-class GTF_transcript:
+class GTF_transcript(GTF_base):
     def __init__(self, data_in):
         self.seqname = None
         self.source = None
@@ -184,8 +214,32 @@ class GTF_transcript:
                 print("Error, this should never happend", file=sys.stderr)
                 exit()
 
+    def get_exon(self):
+        if self.child[0]:
+            return self.child[0]
+        else:
+            return None
 
-class GTF_gene:
+    def get_CDS(self):
+        if self.child[1]:
+            return self.child[1]
+        else:
+            return None
+
+    def get_start_codon(self):
+        if self.child[2]:
+            return self.child[2]
+        else:
+            return None
+
+    def get_stop_codon(self):
+        if self.child[3]:
+            return self.child[3]
+        else:
+            return None
+
+
+class GTF_gene(GTF_base):
     def __init__(self, gene_raw_dt):
         """
         Construct Gtf_gene object
@@ -234,32 +288,16 @@ class GTF_gene:
         
         for transid in data:
             self.child.append(GTF_transcript(data[transid]))
-        
-    
-    def get_geneid(self):
-        return self.attr["gene_id"]
-    
-    def get_gene_info(self):
-        return [self.seqname, self.source, self.pos[0], self.ori]
-    
-    def get_gene_gbkey(self):
-        if self.attr.get("gbkey"):
-            return self.attr["gbkey"][0]
-        else:
-            return None
 
-    def get_gene_biotype(self):
-        if self.attr.get("gene_biotype"):
-            return self.attr["gene_biotype"]
-        else:
-            return None
+    def get_transctipt(self):
+        return self.child
 
 
 class GTF:
     def __init__(self, gtf_file):
         self.data = []
         self.meta = None
-        self.geneids = None
+        self.geneids = []
         self.geneid_index = {}
 
         data = []
@@ -280,7 +318,7 @@ class GTF:
         data = data[meta_line_count:]
         if data[-1][0] == "#":
             data = data[:-1]
-        
+
         gtf_gene_data = {}
         index = 0
         key = None
@@ -317,8 +355,8 @@ class GTF:
             self.geneids.append(geneid)
             self.geneid_index[geneid] = index
             index += 1
-        
-        
+
+
     def __iter__(self):
         self.start = 0
         self.stop = len(self.data)
@@ -336,7 +374,11 @@ class GTF:
 
 
     def get_gene(self, geneid):
-        return self.data[self.geneid_index[geneid]]
+        if geneid in self.geneid_index:
+            return self.data[self.geneid_index[geneid]]
+        else:
+            print(f"{geneid} not found in GTF file.", file=sys.stderr)
+            return
 
 
 if __name__ == "__main__":
