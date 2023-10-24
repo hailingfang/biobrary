@@ -1,6 +1,5 @@
 class GTF_stop_codon:
-    def __int__(self, data_splited): 
-        assert "stop_codon" in data_splited
+    def __init__(self, stop_codon_data): 
         self.seqname = None
         self.source = None
         self.pos = None
@@ -8,7 +7,6 @@ class GTF_stop_codon:
         self.frame = None
         self.attr = None
         self.child = []
-        stop_codon_data = data_splited["stop"]
         seqname, source, feature, left, right, score, ori, frame, attrib_dic = \
             stop_codon_data[0]
         lefts = [int(left)]
@@ -26,8 +24,7 @@ class GTF_stop_codon:
 
 
 class GTF_start_codon:
-    def __init__(self, data_splited):
-        assert "start_codon" in data_splited
+    def __init__(self, start_codon_data):
         self.seqname = None
         self.source = None
         self.pos = None
@@ -35,7 +32,6 @@ class GTF_start_codon:
         self.frame = None
         self.attr = None
         self.child = []
-        start_codon_data = data_splited["start_codon"]
         seqname, source, feature, left, right, score, ori, frame, attrib_dic = \
             start_codon_data[0]
         lefts = [int(left)]
@@ -52,17 +48,14 @@ class GTF_start_codon:
 
 
 class GTF_CDS:
-    def __init__(self, data_splited):
-        assert "CDS" in data_splited
+    def __init__(self, cds_data):
         self.seqname = None
         self.source = None
         self.pos = None
         self.ori = None
         self.frame = None
         self.attr = None
-        self.child = []
 
-        cds_data = data_splited.pop("CDS")
         seqname, source, feature, left, right, score, ori, frame, attrib_dic = \
             cds_data[0]
 
@@ -78,29 +71,15 @@ class GTF_CDS:
         self.frame = frame
         self.attr = attrib_dic
 
-        if "start_codon" in data_splited:
-            self.child.append(GTF_start_codon(data_splited))
-        else:
-            self.child.append(None)
-        
-        if "stop_codon" in data_splited:
-            self.child.append(GTF_stop_codon(data_splited))
-        else:
-            self.child.append(None)
-
 
 class GTF_exon:
-    def __init__(self, data_splited):
+    def __init__(self, exon_data):
         self.seqname = None
         self.source = None
         self.pos = None
         self.ori = None
         self.frame = None
         self.attr = None
-        self.child = []
-
-        assert "exon" in data_splited
-        exon_data = data_splited.pop("exon")
 
         seqname, source, feature, left, right, score, ori, frame, attrib_dic = \
             exon_data[0]
@@ -115,8 +94,6 @@ class GTF_exon:
         self.ori = ori
         self.frame = frame
         self.attr = attrib_dic
-        if "CDS" in data_splited:
-            self.child.append(GTF_CDS(data_splited))
 
 
 class GTF_transcript:
@@ -136,6 +113,26 @@ class GTF_transcript:
                 data_splited[feature] = [line]
             else:
                 data_splited[feature].append(line)
+
+
+        child = []
+        if "exon" in data_splited:
+            child.append(GTF_exon(data_splited["exon"]))
+        else:
+            child.append(None)
+        if "CDS" in data_splited:
+            child.append(GTF_CDS(data_splited["CDS"]))
+        else:
+            child.append(None)
+        if "start_codon" in data_splited:
+            child.append(GTF_start_codon(data_splited["start_codon"]))
+        else:
+            child.append(None)
+        if "stop_codon" in data_splited:
+            child.append(GTF_stop_codon(data_splited["stop_codon"]))
+        else:
+            child.append(None)
+        self.child = child
 
         if "transcript" in data_splited:
             assert len(data_splited["transcipt"]) == 1
@@ -166,8 +163,6 @@ class GTF_transcript:
             self.frame = frame
             self.attr = attrib_dic
         
-        self.child.append(GTF_exon(data_splited))
-            
 
 
 class GTF_gene:
@@ -211,7 +206,7 @@ class GTF_gene:
         data = {}
         for line in gene_raw_dt:
             seqname, source, feature, left, right, score, ori, frame, attrib_dic = line
-            transid = attrib_dic["transcript_id"]
+            transid = attrib_dic["transcript_id"][0]
             if transid not in data:
                 data[transid] = [line]
             else:
@@ -228,10 +223,16 @@ class GTF_gene:
         return [self.seqname, self.source, self.pos[0], self.ori]
     
     def get_gene_gbkey(self):
-        return self.attr.get("gbkey")
+        if self.attr.get("gbkey"):
+            return self.attr["gbkey"][0]
+        else:
+            return None
 
     def get_gene_biotype(self):
-        return self.attr.get("gene_biotype")
+        if self.attr.get("gene_biotype"):
+            return self.attr["gene_biotype"]
+        else:
+            return None
 
 
 class GTF:
@@ -267,18 +268,19 @@ class GTF:
             line = line.split("\t")
             feature = line[2]
             attrib = line[-1]
-            attrib = [ele.strip() for ele in attrib.split(";")[:-1]]
+            attrib = [ele.strip() for ele in attrib.split('";')[:-1]]
             attrib_dic = {}
             for ele in attrib:
                 idx = ele.index(" ")
-                key = ele[:idx]
+                key2 = ele[:idx]
                 value = ele[idx+1:].strip('"')
                 if len(value) > 0:
                     if value in attrib_dic:
-                        attrib_dic[key].append(value)
+                        attrib_dic[key2].append(value)
                     else:
-                        attrib_dic[key] = [value]
+                        attrib_dic[key2] = [value]
             line[-1] = attrib_dic
+
             if feature == "gene":
                 index += 1
                 key = index
