@@ -382,7 +382,7 @@ class GTF:
             return self.data[self.geneid_index[geneid]]
         else:
             print(f"{geneid} not found in GTF file.", file=sys.stderr)
-            return
+            return None
 
 
 if __name__ == "__main__":
