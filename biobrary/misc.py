@@ -42,13 +42,24 @@ def merge_isolands(isolands):
     return isolands_merged
 
 
-def change_coordinate(left, positions, cor="relative"):
+def change_coordinate(ref, positions, coor="relative", ori="+"):
     new_pos = []
-    if cor == "relative":
-        for pos in positions:
-            new_pos.append([pos[0] - left + 1, pos[1] - left + 1])
-    elif cor == "absolute":
-        for pos in positions:
-            new_pos.append([pos[0] + left - 1, pos[1] + left - 1])
-
+    if coor == "relative":
+        if ori == "+":
+            for pos in positions:
+                new_pos.append([pos[0] - ref + 1, pos[1] - ref + 1])
+        else:
+            for pos in positions:
+                new_pos.append([ref - pos[1] + 1, ref - pos[0] + 1])
+                new_pos.reverse()
+    elif coor == "absolute":
+        if ori == "+":
+            for pos in positions:
+                new_pos.append([pos[0] + ref - 1, pos[1] + ref - 1])
+        else:
+            for pos in positions:
+                new_pos.append([ref - pos[1] + 1, ref - pos[0] + 1])
+                new_pos.reverse()
+    else:
+        print("Eorror, coordinate is relative or absolute.")
     return new_pos
