@@ -42,24 +42,42 @@ def merge_isolands(isolands):
     return isolands_merged
 
 
-def change_coordinate(ref, positions, coor="relative", ori="+"):
+def change_coordinate(ref, pos, ori="+", coor="rel"):
+    """
+    Convert base cooradition
+
+    Parameters:
+    ------------------
+    ref: [left, right], reference position.
+    pos: list, the pos to be converted.
+    ori: "+"(default) or "-".
+        oritation
+    coor: "rel" or "abs".
+
+    Returns
+    --------------
+    list: converted result.
+    """
     new_pos = []
-    if coor == "relative":
+    if coor == "rel":
         if ori == "+":
-            for pos in positions:
-                new_pos.append([pos[0] - ref + 1, pos[1] - ref + 1])
+            for pos_ele in pos:
+                new_pos.append(pos_ele - ref[0] + 1)
         else:
-            for pos in positions:
-                new_pos.append([ref - pos[1] + 1, ref - pos[0] + 1])
-                new_pos.reverse()
-    elif coor == "absolute":
+            for pos_ele in pos:
+                new_pos.append(ref[1] - pos_ele + 1)
+    elif coor == "abs":
         if ori == "+":
-            for pos in positions:
-                new_pos.append([pos[0] + ref - 1, pos[1] + ref - 1])
+            for pos_ele in pos:
+                new_pos.append(pos_ele + ref[0] - 1)
         else:
-            for pos in positions:
-                new_pos.append([ref - pos[1] + 1, ref - pos[0] + 1])
-                new_pos.reverse()
+            for pos_ele in pos:
+                new_pos.append(ref[1] - pos_ele + 1)
     else:
-        print("Eorror, coordinate is relative or absolute.")
+        print("Error, coordinate is rel or abs.")
+    
     return new_pos
+
+
+if __name__ == "__main__":
+    pass
