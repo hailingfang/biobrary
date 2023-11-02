@@ -267,6 +267,7 @@ class GTF_gene(GTF_base):
         self.frame = []
         self.attr = {}
         self.child = []
+        self.trans_index = {}
 
         gene_line = gene_raw_dt[0]
         seqname, source, feature, left, right, score, ori, frame, attrib_dic = gene_line
@@ -289,12 +290,19 @@ class GTF_gene(GTF_base):
                 data[transid] = [line]
             else:
                 data[transid].append(line)
-        
+        index = 0
         for transid in data:
             self.child.append(GTF_transcript(data[transid]))
+            self.trans_index[transid] = index
+            index += 1
 
-    def get_transcript(self):
-        return self.child
+
+    def get_transcript(self, transid):
+        if transid in self.trans_index:
+            return self.child[self.trans_index[transid]]
+        else:
+            print("transcript id not found.")
+            return None
 
 
 class GTF:
