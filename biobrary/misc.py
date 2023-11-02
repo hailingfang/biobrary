@@ -79,5 +79,40 @@ def change_coordinate(ref, pos, ori="+", coor="rel"):
     return new_pos
 
 
+def split_block(segments, block_start, block_len):
+    data_out = []
+    block_len_left = block_len
+    seg_len = len(segments)
+    start_in = 0
+    for idx in range(seg_len):
+        if segments[idx][0] <= block_start and segments[idx][1] >= block_start:
+            start_in = 1
+            break
+    if not start_in:
+        print("start not in segments")
+        return []
+
+    while True:
+        consum_len = segments[idx][1] - block_start + 1
+        block_len_left -= consum_len
+        if block_len_left > 0:
+            if idx < seg_len - 1:
+                data_out.append([block_start, segments[idx][1]])
+                idx += 1
+                block_start = segments[idx][0]
+            else:
+                data_out.append([block_start, segments[idx][1]])
+                break
+        else:
+            data_out.append([block_start, block_start + block_len - 1])
+            break
+        block_len = block_len_left
+    if block_len_left > 0:
+        print("block out of segments")
+
+    return data_out
+
+
 if __name__ == "__main__":
-    pass
+    print(change_coordinate([300,1000], [3,4,9], ori="-", coor="abs"))
+    print(split_block([[5, 8],[10, 15],[20, 28]], 7, 3))
