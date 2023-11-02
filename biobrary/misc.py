@@ -49,7 +49,7 @@ def change_coordinate(ref, pos, ori="+", coor="rel"):
     Parameters:
     ------------------
     ref: [left, right], reference position.
-    pos: list, the pos to be converted.
+    pos: list, the pos to be converted.[[l1, l2], [l3, l4],...]
     ori: "+"(default) or "-".
         oritation
     coor: "rel" or "abs".
@@ -59,20 +59,43 @@ def change_coordinate(ref, pos, ori="+", coor="rel"):
     list: converted result.
     """
     new_pos = []
+
+    if ori == "+":
+        for ele in pos:
+            ele.sort()
+        pos.sort(key=lambda x:x[0])
+    else:
+        for ele in pos:
+            ele.sort(reverse=True)
+        pos.sort(key=lambda x:x[0], reverse=True)
+
+
     if coor == "rel":
         if ori == "+":
             for pos_ele in pos:
-                new_pos.append(pos_ele - ref[0] + 1)
+                tmp = []
+                for num in pos_ele:
+                    tmp.append(num - ref[0] + 1)
+                new_pos.append(tmp)
         else:
             for pos_ele in pos:
-                new_pos.append(ref[1] - pos_ele + 1)
+                tmp = []
+                for num in pos_ele:
+                    tmp.append(ref[1] - pos_ele + 1)
+                new_pos.append(tmp)
     elif coor == "abs":
         if ori == "+":
             for pos_ele in pos:
-                new_pos.append(pos_ele + ref[0] - 1)
+                tmp = []
+                for num in pos_ele:
+                    tmp.append(ref[0] + num - 1)
+                new_pos.append(tmp)
         else:
             for pos_ele in pos:
-                new_pos.append(ref[1] - pos_ele + 1)
+                tmp = []
+                for num in pos_ele:
+                    tmp.append(ref[1] - num + 1)
+                new_pos.append(tmp)
     else:
         print("Error, coordinate is rel or abs.")
     
