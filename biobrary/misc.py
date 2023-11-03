@@ -1,3 +1,5 @@
+import copy
+
 def merge_isolands(isolands):
     """
     Merge isolands
@@ -57,7 +59,7 @@ def change_coordinate_rel(ref, pos, ori="+"):
     --------------
     list: converted result.
     """
-
+    ref = copy.deepcopy(ref)
     if type(pos) == list and type(pos[0]) == list:
         new_pos = []
         if ori == "+":
@@ -107,6 +109,8 @@ def change_coordinate_rel(ref, pos, ori="+"):
 
 
 def change_coordinate_abs(ref, pos, ori="+"):
+    ref = copy.deepcopy(ref)
+    ref.sort(key=lambda x:x[0])
     if ori == "+":
         for ele in ref:
             block_len = ele[1] - ele[0] + 1
