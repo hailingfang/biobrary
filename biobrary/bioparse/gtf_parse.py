@@ -51,6 +51,7 @@ class GTF_stop_codon(GTF_base):
         self.seqname = seqname
         self.source = source
         self.pos = [[ele[0], ele[1]] for ele in zip(lefts, rights)]
+        self.pos.sort(key=lambda x:x[0])
         self.ori = ori
         self.frame = frames
         self.attr = attrib_dic
@@ -78,6 +79,7 @@ class GTF_start_codon(GTF_base):
         self.seqname = seqname
         self.source = source
         self.pos = [[ele[0], ele[1]] for ele in zip(lefts, rights)]
+        self.pos.sort(key=lambda x:x[0])
         self.ori = ori
         self.frame = frames
         self.attr = attrib_dic
@@ -105,6 +107,7 @@ class GTF_CDS(GTF_base):
         self.seqname = seqname
         self.source = source
         self.pos = [[ele[0], ele[1]] for ele in zip(lefts, rights)]
+        self.pos.sort(key=lambda x:x[0])
         self.ori = ori
         self.frame = frames
         self.attr = attrib_dic
@@ -131,6 +134,7 @@ class GTF_exon(GTF_base):
         self.seqname = seqname
         self.source = source
         self.pos = [[ele[0], ele[1]] for ele in zip(lefts, rights)]
+        self.pos.sort(key=lambda x:x[0])
         self.ori = ori
         self.frame = frames
         self.attr = attrib_dic
