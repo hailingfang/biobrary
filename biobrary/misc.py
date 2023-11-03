@@ -59,7 +59,7 @@ def change_coordinate_rel(ref, pos, ori="+"):
     --------------
     list: converted result.
     """
-    ref = copy.deepcopy(ref)
+    pos = copy.deepcopy(pos)
     if type(pos) == list and type(pos[0]) == list:
         new_pos = []
         if ori == "+":
