@@ -58,48 +58,84 @@ def change_coordinate(ref, pos, ori="+", coor="rel"):
     --------------
     list: converted result.
     """
-    new_pos = []
 
-    if ori == "+":
-        for ele in pos:
-            ele.sort()
-        pos.sort(key=lambda x:x[0])
-    else:
-        for ele in pos:
-            ele.sort(reverse=True)
-        pos.sort(key=lambda x:x[0], reverse=True)
+    if type(pos[0]) == list:
+        new_pos = []
 
-
-    if coor == "rel":
         if ori == "+":
-            for pos_ele in pos:
-                tmp = []
-                for num in pos_ele:
-                    tmp.append(num - ref[0] + 1)
-                new_pos.append(tmp)
+            for ele in pos:
+                ele.sort()
+            pos.sort(key=lambda x:x[0])
         else:
-            for pos_ele in pos:
-                tmp = []
-                for num in pos_ele:
-                    tmp.append(ref[1] - num + 1)
-                new_pos.append(tmp)
-    elif coor == "abs":
-        if ori == "+":
-            for pos_ele in pos:
-                tmp = []
-                for num in pos_ele:
-                    tmp.append(ref[0] + num - 1)
-                new_pos.append(tmp)
+            for ele in pos:
+                ele.sort(reverse=True)
+            pos.sort(key=lambda x:x[0], reverse=True)
+
+
+        if coor == "rel":
+            if ori == "+":
+                for pos_ele in pos:
+                    tmp = []
+                    for num in pos_ele:
+                        tmp.append(num - ref[0] + 1)
+                    new_pos.append(tmp)
+            else:
+                for pos_ele in pos:
+                    tmp = []
+                    for num in pos_ele:
+                        tmp.append(ref[1] - num + 1)
+                    new_pos.append(tmp)
+        elif coor == "abs":
+            if ori == "+":
+                for pos_ele in pos:
+                    tmp = []
+                    for num in pos_ele:
+                        tmp.append(ref[0] + num - 1)
+                    new_pos.append(tmp)
+            else:
+                for pos_ele in pos:
+                    tmp = []
+                    for num in pos_ele:
+                        tmp.append(ref[1] - num + 1)
+                    new_pos.append(tmp)
         else:
-            for pos_ele in pos:
-                tmp = []
-                for num in pos_ele:
-                    tmp.append(ref[1] - num + 1)
-                new_pos.append(tmp)
-    else:
-        print("Error, coordinate is rel or abs.")
+            print("Error, coordinate is rel or abs.")
+        return new_pos
     
-    return new_pos
+    elif type(pos[0]) == int:
+        new_pos = []
+        if coor == "rel":
+            if ori == "+":
+                for num in pos:
+                    new_pos.append(num - ref[0] + 1)
+            else:
+                for num in pos:
+                    new_pos.append(ref[1] - num + 1)
+        elif coor == "abs":
+            if ori == "+":
+                new_pos.append(ref[0] + num - 1)
+            else:
+                new_pos.append(ref[1] - num + 1)
+        else:
+            print("Error, coordinate is rel or abs.")
+
+        return new_pos
+
+    elif type(pos) == int:
+        new_pos = None
+        if coor == "rel":
+            if ori == "+":
+                new_pos = pos - ref[0] + 1
+            else:
+                new_pos = ref[1] - pos + 1
+        elif coor == "abs":
+            if ori == "+":
+                new_pos = ref[0] + pos - 1
+            else:
+                new_pos = ref[1] - pos + 1
+        return new_pos
+    else:
+        print("pos type not correct.")
 
 
 def split_block(segments, block_start, block_len):
