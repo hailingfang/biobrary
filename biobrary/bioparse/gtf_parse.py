@@ -304,6 +304,9 @@ class GTF_gene(GTF_base):
             print("transcript id not found.")
             return None
 
+    def get_transcriptids(self):
+        return list(self.trans_index.keys())
+
 
 class GTF:
     def __init__(self, gtf_file):
