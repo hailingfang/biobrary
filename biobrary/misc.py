@@ -59,7 +59,7 @@ def change_coordinate(ref, pos, ori="+", coor="rel"):
     list: converted result.
     """
 
-    if type(pos[0]) == list:
+    if type(pos) == list and type(pos[0]) == list:
         new_pos = []
 
         if ori == "+":
@@ -102,7 +102,7 @@ def change_coordinate(ref, pos, ori="+", coor="rel"):
             print("Error, coordinate is rel or abs.")
         return new_pos
     
-    elif type(pos[0]) == int:
+    elif type(pos) == list and type(pos[0]) == int:
         new_pos = []
         if coor == "rel":
             if ori == "+":
