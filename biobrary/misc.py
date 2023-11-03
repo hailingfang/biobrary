@@ -81,7 +81,7 @@ def change_coordinate(ref, pos, ori="+", coor="rel"):
             for pos_ele in pos:
                 tmp = []
                 for num in pos_ele:
-                    tmp.append(ref[1] - pos_ele + 1)
+                    tmp.append(ref[1] - num + 1)
                 new_pos.append(tmp)
     elif coor == "abs":
         if ori == "+":
