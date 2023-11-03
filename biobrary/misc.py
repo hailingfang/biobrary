@@ -42,7 +42,7 @@ def merge_isolands(isolands):
     return isolands_merged
 
 
-def change_coordinate(ref, pos, ori="+", coor="rel"):
+def change_coordinate_rel(ref, pos, ori="+"):
     """
     Convert base cooradition
 
@@ -52,7 +52,6 @@ def change_coordinate(ref, pos, ori="+", coor="rel"):
     pos: list, the pos to be converted.[[l1, l2], [l3, l4],...]
     ori: "+"(default) or "-".
         oritation
-    coor: "rel" or "abs".
 
     Returns
     --------------
@@ -61,7 +60,6 @@ def change_coordinate(ref, pos, ori="+", coor="rel"):
 
     if type(pos) == list and type(pos[0]) == list:
         new_pos = []
-
         if ori == "+":
             for ele in pos:
                 ele.sort()
@@ -71,71 +69,57 @@ def change_coordinate(ref, pos, ori="+", coor="rel"):
                 ele.sort(reverse=True)
             pos.sort(key=lambda x:x[0], reverse=True)
 
-
-        if coor == "rel":
-            if ori == "+":
-                for pos_ele in pos:
-                    tmp = []
-                    for num in pos_ele:
-                        tmp.append(num - ref[0] + 1)
-                    new_pos.append(tmp)
-            else:
-                for pos_ele in pos:
-                    tmp = []
-                    for num in pos_ele:
-                        tmp.append(ref[1] - num + 1)
-                    new_pos.append(tmp)
-        elif coor == "abs":
-            if ori == "+":
-                for pos_ele in pos:
-                    tmp = []
-                    for num in pos_ele:
-                        tmp.append(ref[0] + num - 1)
-                    new_pos.append(tmp)
-            else:
-                for pos_ele in pos:
-                    tmp = []
-                    for num in pos_ele:
-                        tmp.append(ref[1] - num + 1)
-                    new_pos.append(tmp)
+        if ori == "+":
+            for pos_ele in pos:
+                tmp = []
+                for num in pos_ele:
+                    tmp.append(num - ref[0] + 1)
+                new_pos.append(tmp)
         else:
-            print("Error, coordinate is rel or abs.")
+            for pos_ele in pos:
+                tmp = []
+                for num in pos_ele:
+                    tmp.append(ref[1] - num + 1)
+                new_pos.append(tmp)
         return new_pos
     
     elif type(pos) == list and type(pos[0]) == int:
         new_pos = []
-        if coor == "rel":
-            if ori == "+":
-                for num in pos:
-                    new_pos.append(num - ref[0] + 1)
-            else:
-                for num in pos:
-                    new_pos.append(ref[1] - num + 1)
-        elif coor == "abs":
-            if ori == "+":
-                new_pos.append(ref[0] + num - 1)
-            else:
-                new_pos.append(ref[1] - num + 1)
+        if ori == "+":
+            for num in pos:
+                new_pos.append(num - ref[0] + 1)
         else:
-            print("Error, coordinate is rel or abs.")
-
+            for num in pos:
+                new_pos.append(ref[1] - num + 1)
         return new_pos
 
     elif type(pos) == int:
         new_pos = None
-        if coor == "rel":
-            if ori == "+":
-                new_pos = pos - ref[0] + 1
-            else:
-                new_pos = ref[1] - pos + 1
-        elif coor == "abs":
-            if ori == "+":
-                new_pos = ref[0] + pos - 1
-            else:
-                new_pos = ref[1] - pos + 1
+        if ori == "+":
+            new_pos = pos - ref[0] + 1
+        else:
+            new_pos = ref[1] - pos + 1
+
         return new_pos
+
     else:
         print("pos type not correct.")
+
+
+def change_coordinate_abs(ref, pos, ori="+"):
+    if ori == "+":
+        for ele in ref:
+            block_len = ele[1] - ele[0] + 1
+            if pos <= block_len:
+                return ele[0] + pos - 1
+            pos -= block_len
+
+    else:
+        for ele in ref[::-1]:
+            block_len = ele[1] - ele[0] + 1
+            if pos <= block_len:
+                return ele[1] - pos + 1
+            pos -= block_len
 
 
 def split_block(segments, block_start, block_len):
