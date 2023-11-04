@@ -21,13 +21,11 @@ def merge_isolands(isolands):
         labeled_border.append((isol[0], "l", index))
         labeled_border.append((isol[1], "r", index))
         index += 1
-
-    labeled_border += 1
+    labeled_border.sort(key=lambda x:x[0])
 
     left = 0
     right = 0
     isolands_merged = []
-    isolands_merged.append(labeled_border[0][0])
     one_isol = []
     for border in labeled_border:
         if border[1] == "l":
