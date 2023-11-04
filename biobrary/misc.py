@@ -124,13 +124,19 @@ def change_coordinate_abs(ref, pos, ori="+"):
 
 
 def exon_coordinate_rel(exon, pos):
+    mark = 0
     pos_exon = 0
     for exon_ele in exon:
         if pos >= exon_ele[0] and pos <= exon_ele[1]:
             pos_exon += pos - exon_ele[0] + 1
+            mark = 1
+            break
         else:
             pos_exon += exon_ele[1] - exon_ele[0] + 1
-    return pos_exon
+    if mark:
+        return pos_exon
+    else:
+        return None
 
 
 def split_block(segments, block_start, block_len):
