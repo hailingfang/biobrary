@@ -149,7 +149,7 @@ def split_block(segments, block_start, block_len):
             start_in = 1
             break
     if not start_in:
-        print("start not in segments")
+        print("Waring, start not in segments, [] returned.")
         return []
 
     while True:
@@ -168,7 +168,7 @@ def split_block(segments, block_start, block_len):
             break
         block_len = block_len_left
     if block_len_left > 0:
-        print("block out of segments")
+        print("Warning, block out of segments.")
 
     return data_out
 
