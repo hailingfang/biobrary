@@ -41,6 +41,103 @@ def merge_isolands(isolands):
     return isolands_merged
 
 
+def relative_coord(reference: "int", positions: "[int, ...]", reverse: "bool" =False) -> "list":
+    """
+    Calculate relavtive location to the reference.
+
+    Parameters
+    -----------
+    reference: int.
+        To which all other locatation ralative to.
+    positions: list.
+    reverse: bool, default is False.
+        If set to True, the sign of location would reversed.
+
+    Retures
+    -----------
+    relative_pos: list.
+    """
+
+    pos_rela = [pos - reference for pos in positions]
+    if reverse:
+        return [-pos for pos in pos_rela]
+    return pos_rela
+
+
+def isoland_distance(isolands: "list", location: "int", side="left") -> "int":
+    """
+    Calculate distance for a given posistion.
+
+    Parameters
+    --------------
+    isolands: list.
+        A sorted list of integer. 'left <= right' for every lands.
+    location: int
+    side: left or right
+        The distance from the left side or right side.
+
+    Retures
+    ------------
+    distance: int or None
+        None for the location not on lsolands
+
+    """
+    dist = 0
+    if side == "left":
+        for isol in isolands:
+            if location >= isol[0] and location <= isol[1]:
+                dist += location - isol[0] + 1
+                return dist
+            elif location > isol[1]:
+                dist += isol[1] - isol[0] + 1
+            else:
+                return None
+
+    elif side == "right":
+        for isol in isolands[::-1]:
+            if location >= isol[0] and location <= isol[1]:
+                dist += isol[1] - location + 1
+                return dist
+            elif location < isol[0]:
+                dist += dist[1] - isol[0] + 1
+            else:
+                return None
+    else:
+        print(f"{side} not know.")
+        return 0
+
+
+def isoland_location(isolands: "list", distance: "int", side="left") -> "int":
+    """
+    Get the location of a point by distance.
+
+    Parameters
+    ------------
+    isolands: list
+        A sorted list of int, 'left <= right' for every isoland.
+    distance: int
+        Distance from the left or right.
+
+    Retures
+    -------------
+    location: int
+        Location on the isolands.
+    """
+    if side == "left":
+        for isol in isolands:
+            distance -= isol[1] - isol[0] + 1
+            if distance <= 0:
+                return distance + isol[1]
+    elif side == "right":
+        for isol in isolands[::-1]:
+            distance -= isol[1] - isol[0] + 1
+            if distance <= 0:
+                return isol[0] - distance
+    else:
+        print(f"{side} not know.")
+        return 0
+
+
 def change_coordinate_rel(ref, pos, ori="+"):
     """
     Convert base cooradition
