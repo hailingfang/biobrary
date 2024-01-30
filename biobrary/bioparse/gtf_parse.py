@@ -181,14 +181,14 @@ class GTF_transcript(GTF_base):
         if "transcript" in data_splited:
             assert len(data_splited["transcript"]) == 1
             seqname, source, feature, left, right, score, ori, frame, attrib_dic\
-                = data_splited["transcipt"][0]
+                = data_splited["transcript"][0]
             self.seqname = seqname
             self.source = source
             self.pos = [[int(left), int(right)]]
             self.ori = ori
             self.frame = [frame]
             self.attr = attrib_dic
-            data_splited.pop("transcipt")
+            data_splited.pop("transcript")
         else:
             if self.child[0]:
                 self.seqname = child[0].seqname
