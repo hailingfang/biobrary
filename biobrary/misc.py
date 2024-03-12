@@ -1,30 +1,30 @@
 import copy
 
-def merge_isolands(isolands):
+def merge_islands(islands):
     """
-    Merge isolands
+    Merge islands
 
     Parameters
     --------------
-    isolands : a list of number contain isolands need to merge
+    islands : a list of number contain islands need to merge
         A list in form like [[1, 3], [2, 4], [5, 9]]
 
     Returns
     ----------
-    isolands_merged : a list of number contain merged isolands
+    islands_merged : a list of number contain merged islands
     """
     
     labeled_border = []
 
     index = 0
-    for isol in isolands:
+    for isol in islands:
         labeled_border.append((isol[0], "l", index))
         labeled_border.append((isol[1], "r", index))
         index += 1
     labeled_border.sort(key=lambda x:x[0])
     left = 0
     right = 0
-    isolands_merged = []
+    islands_merged = []
     one_isol = []
     for border in labeled_border:
         if border[1] == "l":
@@ -35,19 +35,19 @@ def merge_isolands(isolands):
             one_isol.append(border[0])
         elif left == right:
             one_isol.append(border[0])
-            isolands_merged.append(one_isol)
+            islands_merged.append(one_isol)
             one_isol = []
 
-    return isolands_merged
+    return islands_merged
 
 
-def isoland_distance(isolands: "list", location: "int", side="left") -> "int":
+def island_distance(islands: "list", location: "int", side="left") -> "int":
     """
     Calculate distance for a given posistion.
 
     Parameters
     --------------
-    isolands: list.
+    islands: list.
         A sorted list of integer. 'left <= right' for every lands.
     location: int
     side: left or right
@@ -61,7 +61,7 @@ def isoland_distance(isolands: "list", location: "int", side="left") -> "int":
     """
     dist = 0
     if side == "left":
-        for isol in isolands:
+        for isol in islands:
             if location >= isol[0] and location <= isol[1]:
                 dist += location - isol[0] + 1
                 return dist
@@ -71,7 +71,7 @@ def isoland_distance(isolands: "list", location: "int", side="left") -> "int":
                 return None
 
     elif side == "right":
-        for isol in isolands[::-1]:
+        for isol in islands[::-1]:
             if location >= isol[0] and location <= isol[1]:
                 dist += isol[1] - location + 1
                 return dist
@@ -84,29 +84,29 @@ def isoland_distance(isolands: "list", location: "int", side="left") -> "int":
         return 0
 
 
-def isoland_location(isolands: "list", distance: "int", side="left") -> "int":
+def island_location(islands: "list", distance: "int", side="left") -> "int":
     """
     Get the location of a point by distance.
 
     Parameters
     ------------
-    isolands: list
-        A sorted list of int, 'left <= right' for every isoland.
+    islands: list
+        A sorted list of int, 'left <= right' for every island.
     distance: int
         Distance from the left or right.
 
     Retures
     -------------
     location: int
-        Location on the isolands.
+        Location on the islands.
     """
     if side == "left":
-        for isol in isolands:
+        for isol in islands:
             distance -= isol[1] - isol[0] + 1
             if distance <= 0:
                 return distance + isol[1]
     elif side == "right":
-        for isol in isolands[::-1]:
+        for isol in islands[::-1]:
             distance -= isol[1] - isol[0] + 1
             if distance <= 0:
                 return isol[0] - distance
