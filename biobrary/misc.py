@@ -41,29 +41,6 @@ def merge_isolands(isolands):
     return isolands_merged
 
 
-def relative_coord(reference: "int", positions: "[int, ...]", reverse: "bool" =False) -> "list":
-    """
-    Calculate relavtive location to the reference.
-
-    Parameters
-    -----------
-    reference: int.
-        To which all other locatation ralative to.
-    positions: list.
-    reverse: bool, default is False.
-        If set to True, the sign of location would reversed.
-
-    Retures
-    -----------
-    relative_pos: list.
-    """
-
-    pos_rela = [pos - reference for pos in positions]
-    if reverse:
-        return [-pos for pos in pos_rela]
-    return pos_rela
-
-
 def isoland_distance(isolands: "list", location: "int", side="left") -> "int":
     """
     Calculate distance for a given posistion.
@@ -136,6 +113,29 @@ def isoland_location(isolands: "list", distance: "int", side="left") -> "int":
     else:
         print(f"{side} not know.")
         return 0
+
+
+def relative_coord(reference: "int", positions: "list", reverse: "bool" =False) -> "list":
+    """
+    Calculate relavtive location to the reference.
+
+    Parameters
+    -----------
+    reference: int.
+        To which all other locatation ralative to.
+    positions: list.
+    reverse: bool, default is False.
+        If set to True, the sign of location would reversed.
+
+    Retures
+    -----------
+    relative_pos: list.
+    """
+
+    pos_rela = [pos - reference for pos in positions]
+    if reverse:
+        return [-pos for pos in pos_rela]
+    return pos_rela
 
 
 def change_coordinate_rel(ref, pos, ori="+"):
