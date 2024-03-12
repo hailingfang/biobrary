@@ -1,4 +1,5 @@
 import copy
+import sys
 
 def merge_islands(islands):
     """
@@ -39,6 +40,98 @@ def merge_islands(islands):
             one_isol = []
 
     return islands_merged
+
+
+def island_location_by_position(islands: "list", pos: "int"):
+    """
+    Given a list of islands, and a point with absolut postion. Calculate
+    which lsland this point located and the distances from both islands
+    at both side.
+
+    Paramters
+    --------------
+    islands: a sorted list of islands.
+    pos: a int represent the absolute position
+
+    Returns
+    --------------
+    location: the id of island, on which the point located.
+        The id of left most island is 1. None for out of islands. 
+    dist_left: the distance or offset from the island at most left side.
+        None if location == None
+    dist_right: the distance of offset from the island at most right side.
+        None if location  == None
+    """
+    location = None
+    idx = 0
+    for island in islands:
+        idx += 1
+        if pos >= island[0] and pos <= island[1]:
+            location = idx
+
+    if not location:
+        dist_left = None
+        dist_right = None
+    else:
+        island_size = []
+        for island in islands:
+            island_size.append(island[1] - island[0] + 1)
+        dist_left = sum(island_size[:location - 1]) + (pos - islands[location - 1][0])
+        dist_right = sum(island_size[location:]) + (islands[location - 1][1] - pos)
+    
+    return location, dist_left, dist_right
+
+
+def island_location_by_distance(islands: "list", dist: "int", side="left"):
+    """
+    Given a list of lslands, and a distance of a point form left side of
+    left most island or a distance from right side of right most island.
+    Calculate the location of this point, and its relative postion to the
+    islands
+
+    Parameters
+    --------------
+    islands: a sorted list of islands.
+    dist: a int represent the offset from the side.
+    side: which lsland the distance relatived to.
+    
+    Returns
+    ---------------
+    location: the id of island, on which the point located.
+        The id of left most island is 1. None for out of islands. 
+    pos: relative position rative to the side.
+    """
+    location = None
+    if side == "left":
+        cumsum = [islands[0][1] - islands[0][0] + 1]
+        for idx, island in enumerate(islands[1:]):
+            cumsum.append(cumsum[idx] + island[1] - island[0] + 1)
+
+        for idx, cum in enumerate(cumsum):
+            if cum > dist:
+                location = idx + 1
+                break
+            if location:
+                pos = islands[location - 1][0] + (pos - cumsum[location - 2])
+
+    elif side == "right":
+        cumsum = [islands[-1][1] - islands[-1][0] + 1]
+        for idx, island in enumerate(islands[:-1][::-1]):
+            cumsum.append(cumsum[idx] + island[1] - island[0] + 1)
+
+        for idx, cum in enumerate(cumsum):
+            if cum > dist:
+                location = idx + 1
+                break
+            if location:
+                pos = islands[-location][1] - (pos - cumsum[location - 2]) 
+    else:
+        print(f"{side} not is not a acceptable parameter.", file=sys.stderr)
+    
+    if not location:
+        pos = None
+    
+    return location, pos
 
 
 def island_distance(islands: "list", location: "int", side="left") -> "int":
