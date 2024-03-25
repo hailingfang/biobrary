@@ -47,6 +47,7 @@ def island_location_by_position(islands: "list", pos: "int"):
     Given a list of islands, and a point with absolut postion. Calculate
     which lsland this point located and the distances from both islands
     at both side.
+    The position idx is start by 1.
 
     Paramters
     --------------
@@ -57,9 +58,9 @@ def island_location_by_position(islands: "list", pos: "int"):
     --------------
     location: the id of island, on which the point located.
         The id of left most island is 1. None for out of islands. 
-    dist_left: the distance or offset from the island at most left side.
+    dist_left: the distance or indix from the island at most left side.
         None if location == None
-    dist_right: the distance of offset from the island at most right side.
+    dist_right: the distance of index from the island at most right side.
         None if location  == None
     """
     location = None
@@ -70,16 +71,16 @@ def island_location_by_position(islands: "list", pos: "int"):
             location = idx
 
     if not location:
-        dist_left = None
-        dist_right = None
+        idx_left = None
+        idx_right = None
     else:
         island_size = []
         for island in islands:
             island_size.append(island[1] - island[0] + 1)
-        dist_left = sum(island_size[:location - 1]) + (pos - islands[location - 1][0])
-        dist_right = sum(island_size[location:]) + (islands[location - 1][1] - pos)
+        idx_left = sum(island_size[:location - 1]) + (pos - islands[location - 1][0] + 1)
+        idx_right = sum(island_size[location:]) + (islands[location - 1][1] - pos + 1)
     
-    return location, dist_left, dist_right
+    return location, idx_left, idx_right
 
 
 def island_location_by_distance(islands: "list", dist: "int", side="left"):
