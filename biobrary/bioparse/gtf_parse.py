@@ -1,5 +1,5 @@
 import sys
-
+import re
 
 class GTF_base:
     def get_geneid(self):
@@ -55,7 +55,6 @@ class GTF_stop_codon(GTF_base):
         self.ori = ori
         self.frame = frames
         self.attr = attrib_dic
-
 
 
 class GTF_start_codon(GTF_base):
@@ -314,87 +313,70 @@ class GTF_gene(GTF_base):
 
 class GTF:
     def __init__(self, gtf_file):
-        self.data = []
-        self.meta = None
-        self.geneids = []
-        self.geneid_index = {}
+        self.__data = []
+        self.__meta = None
+        self.__geneids = []
+        self.__geneid_index = {}
 
         data = []
+        meta = []
         fin = open(gtf_file, "r")
         for line in fin:
-            data.append(line.rstrip())
+            line = line.rstrip()
+            if line[0] != "#":
+                data.append(line)
+            else:
+                meta.append(line)
         fin.close()
 
-        meta = []
-        meta_line_count = 0
-        for line in data:
-            if line[0] == "#":
-                meta_line_count += 1
-                meta.append(line)
-            else:
-                break
-        self.meta = meta
-        data = data[meta_line_count:]
-        if data[-1][0] == "#":
-            data = data[:-1]
-
+        self.__meta = meta
+        print(self.__meta)
+        retmp = re.compile(r'\s?(.+?)\s"(.+?)";')
         gtf_gene_data = {}
-        index = 0
-        key = None
+        key = 0
         for line in data:
             line = line.split("\t")
             feature = line[2]
-            attrib = line[-1]
-            attrib = [ele.strip() for ele in attrib.split('";')[:-1]]
-            attrib_dic = {}
-            for ele in attrib:
-                idx = ele.index(" ")
-                key2 = ele[:idx]
-                value = ele[idx+1:].strip('"')
-                if len(value) > 0:
-                    if value in attrib_dic:
-                        attrib_dic[key2].append(value)
-                    else:
-                        attrib_dic[key2] = [value]
-            line[-1] = attrib_dic
+            attrib = {ele[0]: ele[1] for ele in retmp.findall(line[-1])}
+            line[-1] = attrib
 
             if feature == "gene":
-                index += 1
-                key = index
+                key += 1
                 gtf_gene_data[key] = [line]
-                continue
-            gtf_gene_data[key].append(line)
+            else:
+                gtf_gene_data[key].append(line)
+        print(gtf_gene_data[3])
         
         for key in gtf_gene_data:
-            self.data.append(GTF_gene(gtf_gene_data[key]))
-        
-        index = 0
-        for gene_data in self.data:
-            geneid = gene_data.get_geneid()
-            self.geneids.append(geneid)
-            self.geneid_index[geneid] = index
-            index += 1
+            self.__data.append(GTF_gene(gtf_gene_data[key]))
+
+        for gene_data in self.__data:
+            gid = gene_data.get_geneid()
+            print(">", gid)
+            self.__geneids.append(gene_data.get_geneid())
+        assert len(self.__geneids) == len(set(self.__geneids))
 
 
     def __iter__(self):
-        self.start = 0
-        self.stop = len(self.data)
+        self.__start = 0
+        self.__stop = len(self.__data)
         return self
 
+
     def __next__(self):
-        if self.start == self.stop:
+        if self.__start == self.__stop:
             raise StopIteration
-        self.start += 1
-        return self.data[self.start - 1]
+        self.__start += 1
+        return self.__data[self.__start - 1]
 
 
     def get_geneids(self):
-        return self.geneids
+        return self.__geneids
 
 
     def get_gene(self, geneid):
-        if geneid in self.geneid_index:
-            return self.data[self.geneid_index[geneid]]
+        if geneid in self.geneids:
+            return self.__data[self.geneids.index(geneid)]
         else:
             print(f"{geneid} not found in GTF file.", file=sys.stderr)
             return None
