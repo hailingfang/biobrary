@@ -117,8 +117,8 @@ class GTF_PROTEIN(GTF_BASE):
                 frame.append(line[7])
             self._GTF_BASE__range = [ele for ele in zip(left, right)]
             self._GTF_BASE__range.sort(key=lambda x:x[0])
-            self._GTF_BASE__left = self.__range[0][0]
-            self._GTF_BASE__right = self.__range[-1][1]
+            self._GTF_BASE__left = self._GTF_BASE__range[0][0]
+            self._GTF_BASE__right = self._GTF_BASE__range[-1][1]
             self._GTF_BASE__frame = frame
 
         elif start_codon_lines:
@@ -154,15 +154,15 @@ class GTF_PROTEIN(GTF_BASE):
 
 
     def get_protein_id(self):
-        return self.__attr["protein_id"]
+        return self._GTF_BASE__attr["protein_id"]
 
 
-    def get_start_stop(self):
+    def get_start_stop_ids(self):
         return self.__start_stop_codon
 
 
     def get_start_stop(self, start_stop_name):
-        return self.__child[self.__start_stop.index(start_stop_name)]
+        return self.__child[self.__start_stop_codon.index(start_stop_name)]
 
 
 class GTF_TRANSCRIPT(GTF_BASE):
@@ -283,7 +283,7 @@ class GTF_TRANSCRIPT(GTF_BASE):
 
 
     def get_trancript_id(self):
-        return self.__attr("transcript_id")
+        return self._GTF_BASE__attr["transcript_id"]
 
 
     def get_protein_ids(self):
@@ -344,7 +344,7 @@ class GTF_GENE(GTF_BASE):
 
     def get_transcript(self, transcript_id):
         if transcript_id in self.__transcript_ids:
-            return self.__child[self.__transcript_ids[transcript_id]]
+            return self.__child[self.__transcript_ids.index(transcript_id)]
         else:
             return None
 
