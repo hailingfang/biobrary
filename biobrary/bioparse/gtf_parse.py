@@ -80,7 +80,7 @@ class GTF_PROTEIN(GTF_BASE):
     def __init__(self, data_in):
         super().__init__()
         
-        self.__start_stop_codon = []
+        self.__start_stop_codon_ids = []
         self.__child = []
 
         cds_lines = []
@@ -145,11 +145,11 @@ class GTF_PROTEIN(GTF_BASE):
                 self._GTF_BASE__attr.pop("exon_number")
 
         if len(start_codon_lines) > 0:
-            self.__start_stop_codon.append("start_codon")
+            self.__start_stop_codon_ids.append("start_codon")
             self.__child.append(GTF_START_STOP_CODON(start_codon_lines))
         
         if len(stop_codon_lines) > 0:
-            self.__start_stop_codon.append("stop_codon")
+            self.__start_stop_codon_ids.append("stop_codon")
             self.__child.append(GTF_START_STOP_CODON(stop_codon_lines))
 
 
@@ -158,11 +158,11 @@ class GTF_PROTEIN(GTF_BASE):
 
 
     def get_start_stop_ids(self):
-        return self.__start_stop_codon
+        return self.__start_stop_codon_ids
 
 
     def get_start_stop(self, start_stop_name):
-        return self.__child[self.__start_stop_codon.index(start_stop_name)]
+        return self.__child[self.__start_stop_codon_ids.index(start_stop_name)]
 
 
 class GTF_TRANSCRIPT(GTF_BASE):
