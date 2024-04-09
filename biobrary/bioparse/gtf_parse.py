@@ -1,322 +1,352 @@
 import sys
 import re
-
-class GTF_base:
-    def get_geneid(self):
-        if self.attr.get("gene_id"):
-            return self.attr["gene_id"][0]
-        else:
-            return None
-
-    def get_transid(self):
-        if self.attr.get("transcript_id"):
-            return self.attr["transcript_id"][0]
-        else:
-            return None
-
-    def get_proteinid(self):
-        if self.attr.get("proteinid"):
-            return self.attr["proteinid"][0]
-        else:
-            return None
-
-    def get_info(self):
-        return [self.seqname, self.source ,self.pos, self.ori, self.frame]
-
-    def get_gbkey(self):
-        if self.attr.get("gbkey"):
-            return self.attr["gbkey"][0]
-        else:
-            return None
+import pdb
 
 
-class GTF_stop_codon(GTF_base):
-    def __init__(self, stop_codon_data): 
-        self.seqname = None
-        self.source = None
-        self.pos = []
-        self.ori = None
-        self.frame = []
-        self.attr = {}
+class GTF_BASE:
+    def __init__(self):
+        self.__seqname = None
+        self.__source = None
+        self.__feature = None
+        self.__left = None
+        self.__right = None
+        self.__ori = None
+        self.__score = None
+        self.__frame = None
+        self.__attr = {}
+        self.__range = []
 
-        seqname, source, feature, left, right, score, ori, frame, attrib_dic = \
-            stop_codon_data[0]
-        lefts = [int(left)]
-        rights = [int(right)]
-        frames = []
-        for line in stop_codon_data[1:]:
-            lefts.append(int(line[3]))
-            rights.append(int(line[4]))
-            frames.append(frame)
-        self.seqname = seqname
-        self.source = source
-        self.pos = [[ele[0], ele[1]] for ele in zip(lefts, rights)]
-        self.pos.sort(key=lambda x:x[0])
-        self.ori = ori
-        self.frame = frames
-        self.attr = attrib_dic
+    def get_seqname(self):
+        return self.__seqname
+    
+    def get_source(self):
+        return self.__source
+    
+    def get_feature(self):
+        return self.__feature
+    
+    def get_left(self):
+        return self.__left
+    
+    def get_right(self):
+        return self.__right
+    
+    def get_ori(self):
+        return self.__ori
+    
+    def get_score(self):
+        return self.__score
+    
+    def get_frame(self):
+        return self.__frame
+    
+    def get_attr(self, key):
+        return self.__attr.get(key)
 
-
-class GTF_start_codon(GTF_base):
-    def __init__(self, start_codon_data):
-        self.seqname = None
-        self.source = None
-        self.pos = []
-        self.ori = None
-        self.frame = []
-        self.attr = {}
-
-        seqname, source, feature, left, right, score, ori, frame, attrib_dic = \
-            start_codon_data[0]
-        lefts = [int(left)]
-        rights = [int(right)]
-        frames = []
-        for line in start_codon_data[1:]:
-            lefts.append(int(line[3]))
-            rights.append(int(line[4]))
-            frames.append(line[7])
-        self.seqname = seqname
-        self.source = source
-        self.pos = [[ele[0], ele[1]] for ele in zip(lefts, rights)]
-        self.pos.sort(key=lambda x:x[0])
-        self.ori = ori
-        self.frame = frames
-        self.attr = attrib_dic
+    def get_attr_dic(self):
+        return self.__attr
 
 
-class GTF_CDS(GTF_base):
-    def __init__(self, cds_data):
-        self.seqname = None
-        self.source = None
-        self.pos = []
-        self.ori = None
-        self.frame = []
-        self.attr = {}
+class GTF_START_STOP_CODON(GTF_BASE):
+    def __init__(self, data_in): 
+        GTF_BASE.__init__(self)
 
-        seqname, source, feature, left, right, score, ori, frame, attrib_dic = \
-            cds_data[0]
-
-        lefts = [int(left)]
-        rights = [int(right)]
-        frames = [frame]
-        for line in cds_data[1:]:
-            lefts.append(int(line[3]))
-            rights.append(int(line[4]))
-            frames.append(line[7])
-        self.seqname = seqname
-        self.source = source
-        self.pos = [[ele[0], ele[1]] for ele in zip(lefts, rights)]
-        self.pos.sort(key=lambda x:x[0])
-        self.ori = ori
-        self.frame = frames
-        self.attr = attrib_dic
-
-
-class GTF_exon(GTF_base):
-    def __init__(self, exon_data):
-        self.seqname = None
-        self.source = None
-        self.pos = []
-        self.ori = None
-        self.frame = []
-        self.attr = {}
-
-        seqname, source, feature, left, right, score, ori, frame, attrib_dic = \
-            exon_data[0]
-        lefts = [int(left)]
-        rights = [int(right)]
-        frames = [frame]
-        for line in exon_data[1:]:
-            lefts.append(int(line[3]))
-            rights.append(int(line[4]))
-            frames.append(line[7])
-        self.seqname = seqname
-        self.source = source
-        self.pos = [[ele[0], ele[1]] for ele in zip(lefts, rights)]
-        self.pos.sort(key=lambda x:x[0])
-        self.ori = ori
-        self.frame = frames
-        self.attr = attrib_dic
-
-
-class GTF_transcript(GTF_base):
-    def __init__(self, data_in):
-        self.seqname = None
-        self.source = None
-        self.pos = []
-        self.ori = None
-        self.frame = []
-        self.attr = {}
-        self.child = []
-
-        data_splited = {}
+        seqname, source, feature, left, right, score, ori, frame, attrib \
+                = data_in[0]
+        self.__seqname = seqname
+        self.__source = source
+        self.__feature = feature
+        self.__ori = ori
+        self.__score = score
+        self.__attr = attrib
+        if "exon_number" in self.__attr:
+            self.__attr.pop("exon_number")
+        left = []
+        right = []
+        frame = []
         for line in data_in:
-            feature = line[2]
-            if feature not in data_splited:
-                data_splited[feature] = [line]
+            left.append(line[3])
+            right.append(line[4])
+            frame.append(line[7])
+        self.__range([ele for ele in zip(left, right)])
+        self.__frame = frame
+
+
+class GTF_PROTEIN(GTF_BASE):
+    def __init__(self, data_in):
+        GTF_BASE.__init__(self)
+        
+        self.__start_stop_codon = []
+        self.__child = []
+
+        cds_lines = []
+        start_codon_lines = []
+        stop_codon_lines = []
+        for line in data_in:
+            if line[3] == "CDS":
+                cds_lines.append(line)
+            elif line[3] == "start_codon":
+                start_codon_lines.append(line)
+            elif line[3] == "stop_codon":
+                stop_codon_lines.append(line)
             else:
-                data_splited[feature].append(line)
+                print(f"feature is not known, {line}", file=sys.stderr)
+        
+        if cds_lines:
+            seqname, source, feature, left, right, score, ori, frame, attrib \
+                = cds_lines[0]
+            self.__seqname = seqname
+            self.__source = source
+            self.__feature = "protein"
+            self.__score = score
+            self.__ori = ori
+            self.__attr = attrib
+            if "exon_number" in self.__attr:
+                self.__attr.pop("exon_number")
+
+            left = []
+            right = []
+            frame = []
+            for line in cds_lines:
+                left.append(line[3])
+                right.append(line[4])
+                frame.append(line[7])
+            self.__range = [ele for ele in zip(left, right)]
+            self.__range.sort(key=lambda x:x[0])
+            self.__left = self.__range[0][0]
+            self.__right = self.__range[-1][1]
+            self.__frame = frame
+
+        elif start_codon_lines:
+            seqname, source, feature, left, right, score, ori, frame, attrib \
+                = start_codon_lines[0]
+            self.__seqname = seqname
+            self.__source = source
+            self.__feature = "protein"
+            self.__score = score
+            self.__ori = ori
+            self.__attr = attrib
+            if "exon_number" in self.__attr:
+                self.__attr.pop("exon_number")
+        elif stop_codon_lines:
+            seqname, source, feature, left, right, score, ori, frame, attrib \
+                = stop_codon_lines[0]
+            self.__seqname = seqname
+            self.__source = source
+            self.__feature = "protein"
+            self.__score = score
+            self.__ori = ori
+            self.__attr = attrib
+            if "exon_number" in self.__attr:
+                self.__attr.pop("exon_number")
+
+        if len(start_codon_lines) > 0:
+            self.__start_stop_codon.append("start_codon")
+            self.__child.append(GTF_START_STOP_CODON(start_codon_lines))
+        
+        if len(stop_codon_lines) > 0:
+            self.__start_stop_codon.append("stop_codon")
+            self.__child.append(GTF_START_STOP_CODON(stop_codon_lines))
 
 
-        child = []
-        if "exon" in data_splited:
-            child.append(GTF_exon(data_splited["exon"]))
-        else:
-            child.append(None)
-        if "CDS" in data_splited:
-            child.append(GTF_CDS(data_splited["CDS"]))
-        else:
-            child.append(None)
-        if "start_codon" in data_splited:
-            child.append(GTF_start_codon(data_splited["start_codon"]))
-        else:
-            child.append(None)
-        if "stop_codon" in data_splited:
-            child.append(GTF_stop_codon(data_splited["stop_codon"]))
-        else:
-            child.append(None)
-        self.child = child
+    def get_protein_id(self):
+        return self.__attr["protein_id"]
 
-        if "transcript" in data_splited:
-            assert len(data_splited["transcript"]) == 1
-            seqname, source, feature, left, right, score, ori, frame, attrib_dic\
-                = data_splited["transcript"][0]
-            self.seqname = seqname
-            self.source = source
-            self.pos = [[int(left), int(right)]]
-            self.ori = ori
-            self.frame = [frame]
-            self.attr = attrib_dic
-            data_splited.pop("transcript")
-        else:
-            if self.child[0]:
-                self.seqname = child[0].seqname
-                self.source = child[0].source
-                pos = child[0].pos
-                lefts = [ele[0] for ele in pos]
-                rights = [ele[1] for ele in pos]
-                lefts.sort()
-                rights.sort()
-                self.pos = [[lefts[0], rights[-1]]]
-                self.ori = child[0].ori
-                self.frame = child[0].frame
-                self.attr = child[0].attr
-            elif self.child[1]:
-                self.seqname = child[1].seqname
-                self.source = child[1].source
-                pos = child[1].pos
-                lefts = [ele[0] for ele in pos]
-                rights = [ele[1] for ele in pos]
-                lefts.sort()
-                rights.sort()
-                self.pos = [[lefts[0], rights[-1]]]
-                self.ori = child[1].ori
-                self.frame = child[1].frame
-                self.attr = child[1].attr
+
+    def get_start_stop(self):
+        return self.__start_stop_codon
+
+
+    def get_start_stop(self, start_stop_name):
+        return self.__child[self.__start_stop.index(start_stop_name)]
+
+
+class GTF_TRANSCRIPT(GTF_BASE):
+    def __init__(self, data_in):
+        GTF_BASE.__init__(self)
+
+        self.__protein_ids = []
+        self.__child = []
+
+        transcript_line = []
+        exon_lines = []
+        cds_lines = []
+        start_codon_lines = []
+        stop_codon_lines = []
+        for line in data_in:
+            if line[3] == "exon":
+                exon_lines.append(line)
+            elif line[3] == "CDS":
+                cds_lines.append(line)
+            elif line[3] == "start_codon":
+                start_codon_lines.append(line)
+            elif line[3] == "stop_codon":
+                stop_codon_lines.append(line)
+            elif line[3] == "transcript":
+                transcript_line.append(line)
             else:
-                print("Error, this should never happend", file=sys.stderr)
-                exit()
+                print(f"feature is not known, {line}", file=sys.stderr)
 
-    def get_child(self):
-        return self.child
+        if transcript_line:
+            seqname, source, feature, left, right, score, ori, frame, attrib \
+                = transcript_line[0]
+            self.__seqname = seqname
+            self.__source = source
+            self.__feature = feature
+            self.__left = left
+            self.__right = right
+            self.__score = score
+            self.__ori = ori
+            self.__frame = frame
+            self.__attr = attrib
+            if exon_lines:
+                left = []
+                right = []
+                for line in exon_lines:
+                    left.append(line[3])
+                    right.append(line[4])
+                    self.__range([ele for ele in zip(left, right)])
+                    self.__range.sort(key=lambda x:x[0])
+            elif cds_lines:
+                left = []
+                right = []
+                for line in cds_lines:
+                    left.append(line[3])
+                    right.append(line[4])
+                    self.__range([ele for ele in zip(left, right)])
+                    self.__range.sort(key=lambda x:x[0])
+        elif exon_lines:
+            seqname, source, feature, left, right, score, ori, frame, attrib \
+                = exon_lines[0]
+            self.__seqname = seqname
+            self.__source = source
+            self.__feature = "transcript"
+            self.__score = score
+            self.__ori = ori
+            self.__frame = frame
+            self.__attr = attrib
+            if "exon_number" in self.__attr:
+                self.__attr.pop("exon_number")
+            left = []
+            right = []
+            for line in exon_lines:
+                left.append(line[3])
+                right.append(line[4])
 
-    def get_exon(self):
-        if self.child[0]:
-            return self.child[0]
+            self.__range = [ele for ele in zip(left, right)]
+            self.__range.sort(key=lambda x:x[0])
+            self.__left = self.__range[0][0]
+            self.__right = self.__range[-1][1]
+
+        elif cds_lines:
+            seqname, source, feature, left, right, score, ori, frame, attrib \
+                = cds_lines[0]
+            self.__seqname = seqname
+            self.__source = source
+            self.__feature = "transcript"
+            self.__score = score
+            self.__ori = ori
+            self.__frame = frame            
+            self.__attr = attrib
+            if "exon_number" in self.__attr:
+                self.__attr.pop("exon_number")
+            left = []
+            right = []
+            for line in cds_lines:
+                left.append(line[3])
+                right.append(line[4])
+            self.__range = [ele for ele in zip(left, right)]
+            self.__range.sort(key=lambda x:x[0])
+            self.__left = self.__range[0][0]
+            self.__right = self.__range[-1][1]
+        else:
+            print("error", file=sys.stderr)
+
+        cds_lines = cds_lines + start_codon_lines + stop_codon_lines
+        protein_data = {}
+        for line in cds_lines:
+            protein_id = line[-1]["protein_id"]
+            if protein_id in protein_data:
+                protein_data[protein_id].append(line)
+            else:
+                protein_data[protein_id] = [line]
+                self.__protein_ids.append(protein_id)
+        assert len(self.__protein_ids) == len(set(self.__protein_ids))
+        for protein_id in protein_data:
+            self.__child.append(GTF_PROTEIN(protein_data[protein_id]))
+
+
+
+    def get_trancript_id(self):
+        return self.__attr("transcript_id")
+
+
+    def get_protein_ids(self):
+        return self.__protein_ids
+
+    
+    def get_protein(self, protein_id):
+        if protein_id in self.__protein_ids:
+            return self.__child[self.__protein_ids.index(protein_id)]
         else:
             return None
 
-    def get_CDS(self):
-        if self.child[1]:
-            return self.child[1]
-        else:
-            return None
 
-    def get_start_codon(self):
-        if self.child[2]:
-            return self.child[2]
-        else:
-            return None
+class GTF_GENE(GTF_BASE):
+    def __init__(self, gene_data):
+        GTF_BASE.__init__(self)
 
-    def get_stop_codon(self):
-        if self.child[3]:
-            return self.child[3]
-        else:
-            return None
+        self.__transcript_ids = []
+        self.__child = []
 
-
-class GTF_gene(GTF_base):
-    def __init__(self, gene_raw_dt):
-        """
-        Construct Gtf_gene object
-
-        Parameters
-        -------------
-        gene_gtf_liens : lines related to one gene
-
-        Returns
-        ------------
-        None
-
-        self.data
-        ---------------
-        {transid: {exon: {exon_number}, CDS: [proteinid, {exon_number: {}}]}, ...}
-        """
-
-        self.seqname = None
-        self.source = None
-        self.pos = []
-        self.ori = None
-        self.frame = []
-        self.attr = {}
-        self.child = []
-        self.trans_index = {}
-
-        gene_line = gene_raw_dt[0]
-        seqname, source, feature, left, right, score, ori, frame, attrib_dic = gene_line
+        gene_line = gene_data[0]
+        seqname, source, feature, left, right, score, ori, frame, attrib_dic \
+            = gene_line
         assert feature == "gene"
-        self.seqname = seqname
-        self.source = source
-        self.pos = [[int(left), int(right)]]
-        self.ori = ori
-        self.frame = [frame]
-        self.attr = attrib_dic
-        assert "gene_id" in self.attr
+        
+        self.__seqname = seqname
+        self.__source = source
+        self.__feature = feature
+        self.__left = int(left)
+        self.__right = int(right)
+        self.__score = score
+        self.__ori = ori
+        self.__frame = frame
+        self.__attr = attrib_dic
+        self.__range = [(self.__left, self.__right)]
+        assert "gene_id" in self.__attr
 
-
-        gene_raw_dt = gene_raw_dt[1:]
-        data = {}
-        for line in gene_raw_dt:
-            seqname, source, feature, left, right, score, ori, frame, attrib_dic = line
-            transid = attrib_dic["transcript_id"][0]
-            if transid not in data:
-                data[transid] = [line]
+        transcript_lines = {}
+        for line in gene_data[1:]:
+            transcript_id = line[-1]["transcript_id"]
+            if transcript_id in transcript_lines:
+                transcript_lines[transcript_id].append(line)
             else:
-                data[transid].append(line)
-        index = 0
-        for transid in data:
-            self.child.append(GTF_transcript(data[transid]))
-            self.trans_index[transid] = index
-            index += 1
+                transcript_lines[transcript_id] = [line]
+                self.__transcript_ids.append(transcript_id)
+        assert len(self.__transcript_ids) == len(set(self.__transcript_ids))
+
+        for transcript_id in transcript_lines:
+            self.__child.append(GTF_TRANSCRIPT(transcript_lines[transcript_id]))
 
 
-    def get_transcript(self, transid):
-        if transid in self.trans_index:
-            return self.child[self.trans_index[transid]]
-        else:
-            print("transcript id not found.")
-            return None
+    def get_gene_id(self):
+        return self.__attr["gene_id"]
 
-    def get_transcriptids(self):
-        return list(self.trans_index.keys())
+
+    def get_trancript_ids(self):
+        pass
+
+
+    def get_transcript(self, transcript_id):
+        pass
 
 
 class GTF:
     def __init__(self, gtf_file):
-        self.__data = []
         self.__meta = None
-        self.__geneids = []
-        self.__geneid_index = {}
+        self.__gene_ids = []
+        self.__child = []
 
         data = []
         meta = []
@@ -330,36 +360,30 @@ class GTF:
         fin.close()
 
         self.__meta = meta
-        print(self.__meta)
+
         retmp = re.compile(r'\s?(.+?)\s"(.+?)";')
         gtf_gene_data = {}
-        key = 0
+        gene_id = None
         for line in data:
             line = line.split("\t")
             feature = line[2]
             attrib = {ele[0]: ele[1] for ele in retmp.findall(line[-1])}
             line[-1] = attrib
-
             if feature == "gene":
-                key += 1
-                gtf_gene_data[key] = [line]
+                assert "gene_id" in attrib
+                gene_id = attrib["gene_id"]
+                gtf_gene_data[gene_id] = [line]
+                self.__gene_ids.append(gene_id)
             else:
-                gtf_gene_data[key].append(line)
-        print(gtf_gene_data[3])
-        
-        for key in gtf_gene_data:
-            self.__data.append(GTF_gene(gtf_gene_data[key]))
-
-        for gene_data in self.__data:
-            gid = gene_data.get_geneid()
-            print(">", gid)
-            self.__geneids.append(gene_data.get_geneid())
-        assert len(self.__geneids) == len(set(self.__geneids))
+                gtf_gene_data[gene_id].append(line)
+        assert len(self.__gene_ids) == len(set(self.__gene_ids))
+        for gene_id in gtf_gene_data:
+            self.__child.append(GTF_GENE(gtf_gene_data[gene_id]))
 
 
     def __iter__(self):
         self.__start = 0
-        self.__stop = len(self.__data)
+        self.__stop = len(self.__child)
         return self
 
 
@@ -367,21 +391,29 @@ class GTF:
         if self.__start == self.__stop:
             raise StopIteration
         self.__start += 1
-        return self.__data[self.__start - 1]
+        return self.__child[self.__start - 1]
 
 
-    def get_geneids(self):
-        return self.__geneids
+    def get_gene_ids(self):
+        return self.__gene_ids
 
 
-    def get_gene(self, geneid):
-        if geneid in self.geneids:
-            return self.__data[self.geneids.index(geneid)]
+    def get_gene(self, gene_id):
+        if gene_id in self.__gene_ids:
+            return self.__child[self.__gene_ids.index(gene_id)]
         else:
-            print(f"{geneid} not found in GTF file.", file=sys.stderr)
+            print(f"{gene_id} not found in GTF file.", file=sys.stderr)
             return None
+
+
+    def get_meta(self):
+        return self.__meta
+
+
 
 
 if __name__ == "__main__":
     import sys
+    breakpoint()
     gtf = GTF(sys.argv[1])
+    print(gtf.get_gene_ids())
