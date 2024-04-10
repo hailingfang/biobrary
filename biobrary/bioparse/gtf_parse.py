@@ -66,8 +66,8 @@ class GTF_START_STOP_CODON(GTF_BASE):
         right = []
         frame = []
         for line in data_in:
-            left.append(line[3])
-            right.append(line[4])
+            left.append(int(line[3]))
+            right.append(int(line[4]))
             frame.append(line[7])
         self._GTF_BASE__range = ([ele for ele in zip(left, right)])
         self._GTF_BASE__range.sort(key=lambda x:x[0])
@@ -112,8 +112,8 @@ class GTF_PROTEIN(GTF_BASE):
             right = []
             frame = []
             for line in cds_lines:
-                left.append(line[3])
-                right.append(line[4])
+                left.append(int(line[3]))
+                right.append(int(line[4]))
                 frame.append(line[7])
             self._GTF_BASE__range = [ele for ele in zip(left, right)]
             self._GTF_BASE__range.sort(key=lambda x:x[0])
@@ -207,16 +207,16 @@ class GTF_TRANSCRIPT(GTF_BASE):
                 left = []
                 right = []
                 for line in exon_lines:
-                    left.append(line[3])
-                    right.append(line[4])
+                    left.append(int(line[3]))
+                    right.append(int(line[4]))
                     self._GTF_BASE__range = ([ele for ele in zip(left, right)])
                     self._GTF_BASE__range.sort(key=lambda x:x[0])
             elif cds_lines:
                 left = []
                 right = []
                 for line in cds_lines:
-                    left.append(line[3])
-                    right.append(line[4])
+                    left.append(int(line[3]))
+                    right.append(int(line[4]))
                     self._GTF_BASE__range([ele for ele in zip(left, right)])
                     self._GTF_BASE__range.sort(key=lambda x:x[0])
         elif exon_lines:
@@ -234,9 +234,8 @@ class GTF_TRANSCRIPT(GTF_BASE):
             left = []
             right = []
             for line in exon_lines:
-                left.append(line[3])
-                right.append(line[4])
-
+                left.append(int(line[3]))
+                right.append(int(line[4]))
             self._GTF_BASE__range = [ele for ele in zip(left, right)]
             self._GTF_BASE__range.sort(key=lambda x:x[0])
             self._GTF_BASE__left = self._GTF_BASE__range[0][0]
@@ -259,8 +258,8 @@ class GTF_TRANSCRIPT(GTF_BASE):
             left = []
             right = []
             for line in cds_lines:
-                left.append(line[3])
-                right.append(line[4])
+                left.append(int(line[3]))
+                right.append(int(line[4]))
             self._GTF_BASE__range = [ele for ele in zip(left, right)]
             self._GTF_BASE__range.sort(key=lambda x:x[0])
             self._GTF_BASE__left = self._GTF_BASE__range[0][0]
@@ -377,8 +376,11 @@ class GTF:
             feature = line[2]
             attrib = retmp.findall(line[-1])
             attrib_dic = {}
+            unique_attr = ["gene", "gene_id", "transcript_id", "protein_id", "gbkey"]
             for ele in attrib:
-                if ele[0] not in attrib_dic:
+                if ele[0] in unique_attr:
+                    attrib_dic[ele[0]] = ele[1]
+                elif ele[0] not in attrib_dic:
                     attrib_dic[ele[0]] = [ele[1]]
                 else:
                     attrib_dic[ele[0]].append(ele[1])
