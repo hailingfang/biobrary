@@ -245,6 +245,8 @@ class GTF_TRANSCRIPT(GTF_BASE):
         elif cds_lines:
             seqname, source, feature, left, right, score, ori, frame, attrib \
                 = cds_lines[0]
+            if "gbkey" in attrib:
+                attrib["gbkey"] = "mRNA"
             self._GTF_BASE__seqname = seqname
             self._GTF_BASE__source = source
             self._GTF_BASE__feature = "transcript"
@@ -373,7 +375,14 @@ class GTF:
         for line in data:
             line = line.split("\t")
             feature = line[2]
-            attrib = {ele[0]: ele[1] for ele in retmp.findall(line[-1])}
+            attrib = retmp.findall(line[-1])
+            attrib_dic = {}
+            for ele in attrib:
+                if ele[0] not in attrib_dic:
+                    attrib_dic[ele[0]] = [ele[1]]
+                else:
+                    attrib_dic[ele[0]].append(ele[1])
+            attrib = attrib_dic
             line[-1] = attrib
             if feature == "gene":
                 assert "gene_id" in attrib
