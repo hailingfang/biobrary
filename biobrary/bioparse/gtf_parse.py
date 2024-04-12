@@ -349,6 +349,7 @@ class GTF_GENE(GTF_BASE):
         else:
             return None
 
+
 class GTF:
     def __init__(self, gtf_file):
         self.__meta = None
@@ -432,4 +433,13 @@ if __name__ == "__main__":
     import pdb
     breakpoint()
     gtf = GTF(sys.argv[1])
-    print(gtf.get_gene_ids())
+    for gene in gtf:
+        print(gene.get_gene_id())
+        for tran_id in gene.get_transcript_ids():
+            print(tran_id)
+            trans = gene.get_transcript(tran_id)
+            for prot_id in trans.get_protein_ids():
+                print(prot_id)
+                prot = trans.get_protein(prot_id)
+                print(prot.get_start_stop_ids())
+
