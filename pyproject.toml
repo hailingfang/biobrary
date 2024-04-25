@@ -8,8 +8,8 @@ version = "0.1.4"
 authors = [{name="Hailing Fang", email="benjaminfang.ol@outlook.com"}]
 description = "A library for biological computing works"
 readme = "README.md"
-requires-python = ">=3.6"
-license = {text = "MIT License"}
+requires-python = ">=3.7"
+license = {file = "LICENSE"}
 keywords = ["biobrary", "bioparse", "tree"]
 classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
