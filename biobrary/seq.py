@@ -1,7 +1,7 @@
 import sys
-from .base_complement import base_complement as basecom
-from biobrary.biocodon import CODON_AA as condon_dic
-from .molecular_weight import amino_acids_mw
+from .data.base_complement import base_complement as basecom
+from .data.biocodon import CODON_AA as condon_dic
+from .data.molecular_weight import amino_acids_mw
 
 class Seq:
     def __init__(self, seq, seqtype="nucl"):
