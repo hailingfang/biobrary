@@ -44,7 +44,6 @@ codon_AA={'ttt':'F','ttc':'F',
           'taa':'*','tag':'*','tga':'*',
          }
 
-
 start_codon = ['ATG']
 
 stop_codon = ['TAA', 'TAG', 'TGA']
