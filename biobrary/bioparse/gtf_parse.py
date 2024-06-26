@@ -1,4 +1,5 @@
 import re
+import gzip
 
 
 class GTF_BASE:
@@ -358,14 +359,24 @@ class GTF:
 
         data = []
         meta = []
-        fin = open(gtf_file, "r")
-        for line in fin:
-            line = line.rstrip()
-            if line[0] != "#":
-                data.append(line)
-            else:
-                meta.append(line)
-        fin.close()
+        if gtf_file.endswith(".gz"):
+            fin = gzip.open(gtf_file, "r")
+            for line in fin:
+                line = line.decode().rstrip()
+                if line[0] != "#":
+                    data.append(line)
+                else:
+                    meta.append(line)
+            fin.close()
+        else:
+            fin = open(gtf_file, "r")
+            for line in fin:
+                line = line.rstrip()
+                if line[0] != "#":
+                    data.append(line)
+                else:
+                    meta.append(line)
+            fin.close()
 
         self.__meta = meta
 
