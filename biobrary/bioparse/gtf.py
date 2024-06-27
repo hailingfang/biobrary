@@ -41,13 +41,15 @@ class GTF_BASE:
         return self.__range
 
 
-class GTF_START_CODON(GTF_BASE):
-    def __init__(self, data_line):
+class GTF_STOP_CODON(GTF_BASE):
+    def __init__(self):
         super().__init__()
+        self._GTF_BASE__feature = 'start_codon'
+
+    def init_by_gtf_line(self, data_line):
         seqid, source, frange, score, ori, frame, attr_dic = data_line
         self._GTF_BASE__seqname = seqid
         self._GTF_BASE__source = source
-        self._GTF_BASE__feature = 'stop_codon'
         self._GTF_BASE__score = score
         self._GTF_BASE__ori = ori
         self._GTF_BASE__frame = frame
@@ -70,13 +72,15 @@ class GTF_START_CODON(GTF_BASE):
         return self.__protein_id
 
 
-class GTF_STOP_CODON(GTF_BASE):
-    def __init__(self, data_line):
+class GTF_START_CODON(GTF_BASE):
+    def __init__(self):
         super().__init__()
+        self._GTF_BASE__feature = 'stop_codon'
+
+    def init_by_gtf_line(self, data_line):
         seqid, source, frange, score, ori, frame, attr_dic = data_line
         self._GTF_BASE__seqname = seqid
         self._GTF_BASE__source = source
-        self._GTF_BASE__feature = 'start_codon'
         self._GTF_BASE__score = score
         self._GTF_BASE__ori = ori
         self._GTF_BASE__frame = frame
@@ -100,12 +104,14 @@ class GTF_STOP_CODON(GTF_BASE):
 
 
 class GTF_CDS(GTF_BASE):
-    def __init__(self, data_line):
+    def __init__(self):
         super().__init__()
+        self._GTF_BASE__feature = 'CDS'
+
+    def init_by_gtf_line(self, data_line):
         seqid, source, frange, score, ori, frame, attr_dic = data_line
         self._GTF_BASE__seqname = seqid
         self._GTF_BASE__source = source
-        self._GTF_BASE__feature = 'CDS'
         self._GTF_BASE__score = score
         self._GTF_BASE__ori = ori
         self._GTF_BASE__frame = frame
@@ -129,12 +135,14 @@ class GTF_CDS(GTF_BASE):
 
 
 class GTF_EXON(GTF_BASE):
-    def __init__(self, data_line):
+    def __init__(self):
         super().__init__()
+        self._GTF_BASE__feature = 'exon'
+
+    def init_by_gtf_line(self, data_line):
         seqid, source, frange, score, ori, frame, attr_dic = data_line
         self._GTF_BASE__seqname = seqid
         self._GTF_BASE__source = source
-        self._GTF_BASE__feature = 'exon'
         self._GTF_BASE__score = score
         self._GTF_BASE__ori = ori
         self._GTF_BASE__frame = frame
@@ -153,12 +161,14 @@ class GTF_EXON(GTF_BASE):
 
 
 class GTF_TRANSCRIPT(GTF_BASE):
-    def __init__(self, data_line):
+    def __init__(self):
         super().__init__()
+        self._GTF_BASE__feature = 'transcript'
+
+    def init_by_gtf_line(self, data_line):
         seqid, source, left, right, score, ori, frame, attr_dic = data_line
         self._GTF_BASE__seqname = seqid
         self._GTF_BASE__source = source
-        self._GTF_BASE__feature = 'transcript'
         self._GTF_BASE__score = score
         self._GTF_BASE__ori = ori
         self._GTF_BASE__frame = [frame]
@@ -197,12 +207,14 @@ class GTF_TRANSCRIPT(GTF_BASE):
 
 
 class GTF_GENE(GTF_BASE):
-    def __init__(self, data_line):
+    def __init__(self):
         super().__init__()
+        self._GTF_BASE__feature = 'gene'
+
+    def init_by_gtf_line(self, data_line):
         seqid, source, left, right, score, ori, frame, attr_dic = data_line
         self._GTF_BASE__seqname = seqid
         self._GTF_BASE__source = source
-        self._GTF_BASE__feature = 'gene'
         self._GTF_BASE__score = score
         self._GTF_BASE__ori = ori
         self._GTF_BASE__frame = [frame]
@@ -212,8 +224,7 @@ class GTF_GENE(GTF_BASE):
         assert "gene_id" in attr_dic
         self.__gene = attr_dic["gene"]
         self.__gene_id = attr_dic["gene_id"]
-        self.__transcript_s = []
-        self.__transcript_id_s = []
+        self.__transcript_id_transcript_dic = {}
 
     def get_gene_name(self):
         return self.__gene
@@ -222,42 +233,41 @@ class GTF_GENE(GTF_BASE):
         return self.__gene_id
 
     def get_transcript_id_s(self):
-        return self.__transcript_id_s
+        return list(self.__transcript_id_transcript_dic.keys())
+
+    def get_transcript_s(self):
+        return list(self.__transcript_id_transcript_dic.values())
 
     def get_transcript(self, transcript_id):
-        if transcript_id in self.__transcript_id_s:
-            return self.__transcript_s[self.__transcript_id_s.index(transcript_id)]
-        else:
-            return None
+        return self.__transcript_id_transcript_dic.get(transcript_id)
 
 
 class GTF:
     def __init__(self):
         self.__meta = None
-        self.__gene_id_s = []
-        self.__gene_s = []
+        self.__gene_id_gene_dic = {}
         self.__gene_name_gene_id_dic = {}
 
     def __iter__(self):
         self.__start = 0
         self.__stop = len(self.__gene_s)
+        self.__gene_id_s = list(self.__gene_id_gene_dic.keys())
         return self
 
     def __next__(self):
         if self.__start == self.__stop:
             raise StopIteration
         self.__start += 1
-        return self.__gene_s[self.__start - 1]
+        return self.__gene_id_gene_dic[self.__gene_id_s[self.__start - 1]]
 
     def get_gene_ids(self):
-        return self.__gene_id_s
+        return list(self.__gene_id_gene_dic.keys())
+
+    def get_gene_s(self):
+        return list(self.__gene_id_gene_dic.values())
 
     def get_gene(self, gene_id):
-        if gene_id in self.__gene_id_s:
-            return self.__gene_s[self.__gene_id_s.index(gene_id)]
-        else:
-            print(f"{gene_id} not found in GTF file.", file=sys.stderr)
-            return None
+        return self.__gene_id_gene_dic.get(gene_id)
 
     def get_meta(self):
         return self.__meta
@@ -338,7 +348,7 @@ def __meger_feature(data, feature, attr_key):
             #print(f"{attr_key} not found in {line}")
     
     if ignored_line_num:
-        print(f"{ignored_line_num} entries in {feature} were ommited, because less {attr_key} feature.")
+        print(f"{ignored_line_num} entries in {feature} were ommited, because less {attr_key} attribute.")
 
     grouped_data = []
     for key in group_dic:
@@ -373,6 +383,7 @@ def __meger_feature(data, feature, attr_key):
 
 def parse_gtf(gtf_file):
     meta, gtf_data = __read_gtf(gtf_file)
+    #print(list(gtf_data.keys()))
 
     __meger_feature(gtf_data, "exon", "transcript_id")
     __meger_feature(gtf_data, "CDS", "protein_id")
@@ -381,107 +392,107 @@ def parse_gtf(gtf_file):
 
     gtf = GTF()
     gtf._GTF__meta = meta
+    print(gtf.get_meta())
 
+    assert 'gene' in gtf_data
     gene_lines = gtf_data['gene']
-    gene_s = []
-    for line in gene_lines:
-        gene_s.append(GTF_GENE(line))
-    gtf._GTF__gene_s = gene_s
     gene_id_gene_dic = {}
     gene_name_gene_id_dic = {}
-    for gene in gene_s:
+    for line in gene_lines:
+        gene = GTF_GENE()
+        gene.init_by_gtf_line(line)
         gene_name = gene.get_gene_name()
         gene_id = gene.get_gene_id()
         if gene_name not in gene_name_gene_id_dic:
             gene_name_gene_id_dic[gene_name] = [gene_id]
         else:
             gene_name_gene_id_dic[gene_name].append(gene_id)
-        assert gene_id not in gene_id_gene_dic
         gene_id_gene_dic[gene_id] = gene
-        gtf._GTF__gene_id_s.append(gene_id)
-        gtf._GTF__gene_name_gene_id_dic = gene_name_gene_id_dic
+    gtf._GTF__gene_id_gene_dic = gene_id_gene_dic
+    gtf._GTF__gene_name_gene_id_dic = gene_name_gene_id_dic
 
-    transcript_s = []
     if 'transcript' in gtf_data:
         transcript_lines = gtf_data['transcript']
         for line in transcript_lines:
-            transcript_s.append(GTF_TRANSCRIPT(line))
-    else:
-        transcript_lines = gtf_data['exon']
-        for line in transcript_lines:
-            seqid, source, frange, score, ori, frame, attr_dic = line
-            line = [seqid, source, None, None, score, ori, None, attr_dic]
-            transcript_s.append(GTF_TRANSCRIPT(line))
+            transcript = GTF_TRANSCRIPT()
+            transcript.init_by_gtf_line(line)
+            gene_id = transcript.get_gene_id()
+            transcript_id = transcript.get_transcript_id()
+            gene = gene_id_gene_dic[gene_id]
+            gene._GTF_GENE__transcript_id_transcript_dic[transcript_id] = transcript
 
-    gene_id_transcript_dic = {}
-    transcript_id_transcript_dic = {}
-    for transcript in transcript_s:
-        gene_id = transcript.get_gene_id()
-        transcript_id = transcript.get_transcript_id()
-        if gene_id not in gene_id_transcript_dic:
-            gene_id_transcript_dic[gene_id] = [transcript]
-        else:
-            gene_id_transcript_dic[gene_id].append(transcript)
-        assert transcript_id not in transcript_id_transcript_dic
-        transcript_id_transcript_dic[transcript_id] = transcript
+    if 'exon' in gtf_data:
+        exon_lines = gtf_data['exon']
+        for line in exon_lines:
+            exon = GTF_EXON()
+            exon.init_by_gtf_line(line)
+            gene_id = exon.get_gene_id()
+            transcript_id = exon.get_transcript_id()
+            gene = gene_id_gene_dic[gene_id]
+            if transcript_id in gene.get_transcript_id_s():
+                transcript = gene.get_transcript(transcript_id)
+                transcript._GTF_TRNASCRIPT__exon = exon
+            else:
+                transcript = GTF_TRANSCRIPT()
+                transcript._GTF_TRANSCRIPT__gene_id = gene_id
+                transcript._GTF_TRANSCRIPT__transcript_id = transcript_id
+                transcript._GTF_TRANSCRIPT__exon = exon
+                gene._GTF_GENE__transcript_id_transcript_dic[transcript_id] = transcript
+            
+    if 'CDS' in gtf_data:
+        cds_lines = gtf_data['CDS']
+        for line in cds_lines:
+            cds = GTF_CDS()
+            cds.init_by_gtf_line(line)
+            gene_id = cds.get_gene_id()
+            transcript_id = cds.get_transcript_id()
+            gene = gene_id_gene_dic[gene_id]
+            if transcript_id in gene.get_transcript_id_s():
+                transcript = gene.get_transcript(transcript_id)
+                transcript._GTF_TRANSCRIPT_biotype = 'mRNA'
+                transcript._GTF_TRANSCRIPT__CDS = cds
+            else:
+                transcript = GTF_TRANSCRIPT()
+                transcript._GTF_TRANSCRIPT__gene_id = gene_id
+                transcript._GTF_TRANSCRIPT__transcript_id = transcript_id
+                transcript._GTF_TRANSCRIPT__CDS = cds
+                gene._GTF_GENE__transcript_id_transcript_dic[transcript_id] = transcript
 
-    for gene_id in gene_id_gene_dic:
-        if gene_id in gene_id_transcript_dic:
-            gene_id_gene_dic[gene_id]._GTF_GENE__transcript_s = gene_id_transcript_dic[gene_id]
-            gene_id_gene_dic[gene_id]._GTF_GENE__transcript_id_s = \
-                [ele.get_transcript_id for ele in gene_id_transcript_dic[gene_id]]
+    if 'start_codon' in gtf_data:
+        start_codon_lines = gtf_data['start_codon']
+        for line in start_codon_lines:
+            start_codon = GTF_START_CODON()
+            start_codon.init_by_gtf_line(line)
+            gene_id = start_codon.get_gene_id()
+            transcript_id = start_codon.get_transcript_id()
+            gene = gene_id_gene_dic[gene_id]
+            if transcript_id in gene.get_transcript_id_s():
+                transcript = gene.get_transcript(transcript_id)
+                transcript._GTF_TRANSCRIPT__start_codon = start_codon
+            else:
+                transcript = GTF_TRANSCRIPT()
+                transcript._GTF_TRANSCRIPT__gene_id = gene_id
+                transcript._GTF_TRANSCRIPT__transcript_id = transcript_id
+                transcript._GTF_TRANSCRIPT__start_codon = start_codon
+                gene._GTF_GENE__transcript_id_transcript_dic[transcript_id] = transcript
 
-    exon_lines = gtf_data['exon']
-    exon_s = []
-    for line in exon_lines:
-        exon_s.append(GTF_EXON(line))
-    transcript_id_exon_dic = {}
-    for exon in exon_s:
-        transcript_id_exon = exon.get_transcript_id()
-        assert transcript_id_exon not in transcript_id_exon_dic
-        transcript_id_exon_dic[transcript_id_exon] = exon
-
-    cds_lines = gtf_data['CDS']
-    cds_s = []
-    for line in cds_lines:
-        cds_s.append(GTF_CDS(line))
-    transcript_id_cds_dic = {}
-    for cds in cds_s:
-        transcript_id_cds = cds.get_transcript_id()
-        assert transcript_id_cds not in transcript_id_cds_dic
-        transcript_id_cds_dic[transcript_id_cds] = cds
-
-    start_codon_lines = gtf_data['start_codon']
-    start_codon_s = []
-    for line in start_codon_lines:
-        start_codon_s.append(GTF_START_CODON(line))
-    transcript_id_start_codon_dic = {}
-    for start_codon in start_codon_s:
-        transcript_id_start_codon = start_codon.get_transcript_id()
-        assert transcript_id_start_codon not in transcript_id_start_codon_dic
-        transcript_id_start_codon_dic[transcript_id_start_codon] = start_codon
-
-    stop_codon_lines = gtf_data['stop_codon']
-    stop_codon_s = []
-    for line in stop_codon_lines:
-        stop_codon_s.append(GTF_STOP_CODON(line))
-    transcript_id_stop_codon_dic = {}
-    for stop_codon in stop_codon_s:
-        transcript_id_stop_codon = stop_codon.get_transcript_id()
-        assert transcript_id_stop_codon not in transcript_id_stop_codon_dic
-        transcript_id_stop_codon_dic[transcript_id_stop_codon] = stop_codon
-
-    for transcript_id in transcript_id_transcript_dic:
-        transcript = transcript_id_transcript_dic[transcript_id]
-        if transcript_id in transcript_id_exon_dic:
-            transcript._GTF_EXON__exon = transcript_id_exon_dic[transcript_id]
-        if transcript_id in transcript_id_cds_dic:
-            transcript.GTF_CDS__cds = transcript_id_cds_dic[transcript_id]
-        if transcript_id in transcript_id_start_codon_dic:
-            transcript._GTF_START_CODON__start_codon = transcript_id_start_codon_dic[transcript_id]
-        if transcript_id in transcript_id_stop_codon_dic:
-            transcript._GTF_STOP_CODON__stop_codon = transcript_id_stop_codon_dic[transcript_id]
-
+    if 'stop_codon' in gtf_data:
+        stop_codon_lines = gtf_data['stop_codon']
+        for line in stop_codon_lines:
+            stop_codon = GTF_START_CODON()
+            stop_codon.init_by_gtf_line(line)
+            gene_id = stop_codon.get_gene_id()
+            transcript_id = stop_codon.get_transcript_id()
+            gene = gene_id_gene_dic[gene_id]
+            if transcript_id in gene.get_transcript_id_s():
+                transcript = gene.get_transcript(transcript_id)
+                transcript._GTF_TRANSCRIPT__stop_codon = stop_codon
+            else:
+                transcript = GTF_TRANSCRIPT()
+                transcript._GTF_TRANSCRIPT__gene_id = gene_id
+                transcript._GTF_TRANSCRIPT__transcript_id = transcript_id
+                transcript._GTF_TRANSCRIPT__stop_codon = stop_codon
+                gene._GTF_GENE__transcript_id_transcript_dic[transcript_id] = transcript
     return gtf
 
 
