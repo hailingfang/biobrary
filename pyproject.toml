@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "biobrary"
-version = "0.1.5"
-authors = [{name="Hailing Fang", email="benjaminfang.ol@outlook.com"}]
+version = "0.2.0"
+authors = [{name="Hailing Fang", email="hailing.fang@outlook.com"}]
 description = "A library for biological computing works"
 readme = "README.md"
 requires-python = ">=3.7"
@@ -19,4 +19,4 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/benjaminfang/biobrary"
+"Homepage" = "https://github.com/hailingfang/biobrary"
