@@ -1,167 +1,122 @@
-import os
-import sys
+"""
+Founctions and Class to parse FASTA file.
+"""
+
+import gzip
 
 
-class Fasta_seq:
-    """
-    Fasta data block class.
-    """
-    def __init__(self, seqid, seqdata, seqid_append=None, seqid_make_func=None):
-        self.seqid = seqid
-        self.seqdata = seqdata
-        self.seqid_append = seqid_append
-        self.seqlen = len(self.seqdata)
-        self.seqid_make_func = seqid_make_func
-    
+class FASTA_ENTRY:
+    def __init__(self, seq_id, seq_info, entry_start, entry_size, fasta_file):
+        self._seq_id = seq_id
+        self._seq_info = seq_info
+        self._entry_start = entry_start
+        self._entry_size = entry_size
+        self._file = fasta_file
+        self._seq_loaded = False
+        self._seq = None
 
-    def __str__(self):
-        return ">" + self.seqid + "\n" + self.seqdata
+    def _load_seq(self):
+        if not self._seq_loaded:
+            if self._file.endswith(".gz"):
+                fin = gzip.open(self._file, "r")
+                fin.seek(self._entry_start, 0)
+                self._seq = ''.join(fin.read(self._entry_size).decode().split('\n')[:-1])
+                self._seq_loaded = True
+                fin.close()
+            else:
+                fin = open(self._file, "r")
+                fin.seek(self._entry_start, 0)
+                self._seq = ''.join(fin.read(self._entry_size).split('\n')[:-1])
+                self._seq_loaded = True
+                fin.close()
 
+    def get_seq_id(self):
+        return self._seq_id
 
-    def substr(self, left, right):
-        """return substr of seqdata"""
+    def get_seq_info(self):
+        return self._seq_info
 
-        if left > right or left > self.seqlen or right > self.seqlen:
-            print("Wraning, illeagl left or right border", file=sys.stderr)            
-        return self.seqdata[left - 1: right]
-    
-    def get_seqid(self):
-        return self.seqid
-
-    def print(self, width=80, seqid_make_func=None, file=sys.stdout):
-        """print fastq seqdata"""
-
-        if not seqid_make_func and self.seqid_make_func:
-            seqid_make_func = self.seqid_make_func
-        if seqid_make_func:
-            seqid = seqid_make_func(self.seqid, self.seqid_append)
-            print(">" + seqid, file=file)
-            for i in range(self.seqlen)[::width]:
-                print(self.seqdata[i: i + width], file=file)
+    def get_seq(self):
+        if self._seq_loaded:
+            return self._seq
         else:
-            print(">" + self.seqid, file=file)
-            for i in range(self.seqlen)[::width]:
-                print(self.seqdata[i: i + width], file=file)
-
-
+            self._load_seq()
+            return self._seq
 
 
 class FASTA:
-    """
-    This class was writed to parse fasta file.
-    """
-    def __init__(self, fasta_file, seqid_format_func=None):
-        if not os.path.exists(fasta_file):
-            print(f"error, file {fasta_file} not found", file=sys.stderr)
-            exit()
+    def __init__(self):
+        self.seq_id_entry_dic = {}
 
-        self.file_name = fasta_file
-        self.indexed = False
-        self.seqid_order = []
-        self.seqid_info = {}
-        self.seqid_seek = {}
-        self.seqid_index = {}
-        self.index_seqid = {}
-        self.seqid_format_func = seqid_format_func
-        self.index_file()
+    def get_seq_id_s(self):
+        return list(self.seq_id_entry_dic.keys())
+
+    def get_seq_entry(self, seq_id):
+        return self.seq_id_entry_dic[seq_id]
 
 
-    def __iter__(self):
-        self.start = 0
-        self.stop = len(self.seqid_order)
-        return self
-
-
-    def __next__(self):
-        if self.start == self.stop:
-            raise StopIteration
-        self.start += 1
-        return self.get_seq(self.seqid_order[self.start - 1])
-
-
-    def index_file(self):
-        """
-        Index file seek position for every seqid.
-        """
-        if not self.indexed:
-            seqid_format_func = self.seqid_format_func
-            fin = open(self.file_name, "r" )
-            index = 0
-            while True:
-                line = fin.readline()
-                if not line:
-                    break
-                if line[0] == ">":
-                    line = line.rstrip()
-                    seqid_raw = line[1:].split()[0]
-                    if seqid_format_func:
-                        seqid = seqid_format_func(seqid_raw)
-                    else:
-                        seqid = seqid_raw
-
-                    self.seqid_order.append(seqid)
-                    if seqid in self.seqid_info:
-                        print(f"Warning, seqid {seqid} duplicated", file=sys.stderr)
-                    else:
-                        self.seqid_info[seqid] = line[1:]
-
-                    self.seqid_seek[seqid] = fin.tell() - len(line) - 1
-                    self.seqid_index[seqid] = index
-                    self.index_seqid[index] = seqid
-                    index += 1
-            fin.close()
-            self.indexed = True
-
-
-    def get_seqids(self):
-        """reture all seqid by order along with the fasta file"""
-        return self.seqid_order
-    
-    
-    def get_seqid_info(self, seqid):
-        """return seq information of seqid"""
-
-        return self.seqid_info[seqid]
-    
-
-    def get_seq(self, seqid):
-        """
-        Make fasta seq instance
-
-        Parameters
-        --------------
-        seqid : a string
-            fastq sequence id.
-
-        Returns
-        ------------
-        Fasta_data : A instance of Fasta data
-        """
-        dt_seek_pos = self.seqid_seek.get(seqid)
-        if dt_seek_pos != 0 and not dt_seek_pos:
-            print("sequence id not found ...", file=sys.stderr)
-            exit()
-        next_seqid = self.index_seqid.get(self.seqid_index[seqid] + 1)
-        next_dt_seek_pos = self.seqid_seek.get(next_seqid)
-
-        fin = open(self.file_name, "r")
-        fin.seek(dt_seek_pos)
-        if next_dt_seek_pos:
-            seq_data = fin.read(next_dt_seek_pos - dt_seek_pos)
-        else:
-            seq_data = fin.read()
+def _read_fasta(fasta_file):
+    data = {}
+    file_pos_s = []
+    head_len = []
+    seq_id_s = []
+    seq_info_s = []
+    if fasta_file.endswith(".gz"):
+        fin = gzip.open(fasta_file, "r")
+        for line in fin:
+            if line[0] == 62:
+                line = line.decode()
+                head_len.append(len(line))
+                line = line.rstrip().split()
+                seq_id = line[0][1:]
+                seq_info = ' '.join(line[1:])
+                file_pos = fin.tell()
+                seq_id_s.append(seq_id)
+                seq_info_s.append(seq_info)
+                file_pos_s.append(file_pos)
+        file_pos_s.append(fin.tell())
+        head_len.append(0)
+        head_len = head_len[1:]
         fin.close()
-        seq_data = seq_data.split("\n")
-        seq_seqid_line = " ".join(seq_data[0].split()[1:])
-        seq_data = "".join(seq_data[1:])
+    else:
+        fin = open(fasta_file, "r")
+        for line in fin:
+            if line[0] == '>':
+                head_len.append(len(line))
+                line = line.rstrip().split()
+                seq_id = line[0][1:]
+                seq_info = ' '.join(line[1:])
+                file_pos = fin.tell()
+                seq_id_s.append(seq_id)
+                seq_info_s.append(seq_info)
+                file_pos_s.append(file_pos)
+        file_pos_s.append(fin.tell())
+        head_len.append(0)
+        head_len = head_len[1:]
+        fin.close()
+    for idx, seq_id in enumerate(seq_id_s):
+        data[seq_id] = [seq_info_s[idx], file_pos_s[idx], file_pos_s[idx + 1] - file_pos_s[idx] - head_len[idx]]
+    return data
 
-        return Fasta_seq(seqid, seq_data, seqid_append=seq_seqid_line)
+
+def parse_fasta(fasta_file):
+    fasta_data = _read_fasta(fasta_file)
+    fasta = FASTA()
+    for seq_id in fasta_data:
+        seq_info, entry_start, entry_size = fasta_data[seq_id]
+        print(seq_id, seq_info, entry_start, entry_size)
+        fasta_entry = FASTA_ENTRY(seq_id, seq_info, entry_start, entry_size, fasta_file)
+        fasta.seq_id_entry_dic[seq_id] = fasta_entry
+    return fasta
 
 
+def test_fasta(fasta_file):
+    fasta = parse_fasta(fasta_file)
+    seq_id_s = fasta.get_seq_id_s()
+    print(seq_id_s)
 
 
 if __name__ == "__main__":
-    """For test purpose."""
-
-    fasta = FASTA(sys.argv[1])
+    import sys
+    test_fasta(sys.argv[1])
     
