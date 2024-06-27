@@ -85,8 +85,7 @@ class GTF_STOP_CODON(GTF_BASE):
         self._protein_id = None
         self._biotype = None
 
-    def _init_by_gtf_line(self, data_line):
-        seqid, source, frange, score, ori, frame, attr_dic = data_line
+    def _init_by_gtf_line(self, seqid, source, frange, score, ori, frame, attr_dic):
         _init_by_gtf_line_helper(self, seqid, source, frange, score, ori, frame, attr_dic)
         assert "transcript_id" in attr_dic
         assert "protein_id" in attr_dic
@@ -104,8 +103,7 @@ class GTF_START_CODON(GTF_BASE, GET_GTF_ATTR):
         self._protein_id = None
         self._biotype = None
 
-    def _init_by_gtf_line(self, data_line):
-        seqid, source, frange, score, ori, frame, attr_dic = data_line
+    def _init_by_gtf_line(self, seqid, source, frange, score, ori, frame, attr_dic):
         _init_by_gtf_line_helper(self, seqid, source, frange, score, ori, frame, attr_dic)
         assert "transcript_id" in attr_dic
         assert "protein_id" in attr_dic
@@ -123,8 +121,7 @@ class GTF_CDS(GTF_BASE, GET_GTF_ATTR):
         self._protein_id = None
         self._biotype = None
 
-    def _init_by_gtf_line(self, data_line):
-        seqid, source, frange, score, ori, frame, attr_dic = data_line
+    def _init_by_gtf_line(self, seqid, source, frange, score, ori, frame, attr_dic):
         _init_by_gtf_line_helper(self, seqid, source, frange, score, ori, frame, attr_dic)
         assert "transcript_id" in attr_dic
         assert "protein_id" in attr_dic
@@ -141,8 +138,7 @@ class GTF_EXON(GTF_BASE, GET_GTF_ATTR):
         self._transcript_id = None
         self._biotype = None
 
-    def _init_by_gtf_line(self, data_line):
-        seqid, source, frange, score, ori, frame, attr_dic = data_line
+    def _init_by_gtf_line(self, seqid, source, frange, score, ori, frame, attr_dic):
         _init_by_gtf_line_helper(self, seqid, source, frange, score, ori, frame, attr_dic)
         assert "transcript_id" in attr_dic
         self._transcript_id = attr_dic["transcript_id"]
@@ -162,8 +158,7 @@ class GTF_TRANSCRIPT(GTF_BASE, GET_GTF_ATTR):
         self._start_codon = None
         self._stop_codon = None
 
-    def _init_by_gtf_line(self, data_line):
-        seqid, source, left, right, score, ori, frame, attr_dic = data_line
+    def _init_by_gtf_line(self, seqid, source, left, right, score, ori, frame, attr_dic):
         frange = [(left, right)]
         _init_by_gtf_line_helper(self, seqid, source, frange, score, ori, frame, attr_dic)
         assert "transcript_id" in attr_dic
@@ -192,8 +187,7 @@ class GTF_GENE(GTF_BASE, GET_GTF_ATTR):
         self._biotype = None
         self._transcript_id_transcript_dic = {}
 
-    def _init_by_gtf_line(self, data_line):
-        seqid, source, left, right, score, ori, frame, attr_dic = data_line
+    def _init_by_gtf_line(self, seqid, source, left, right, score, ori, frame, attr_dic):
         frange = [(left, right)]
         _init_by_gtf_line_helper(self, seqid, source, frange, score, ori, frame, attr_dic)
         self._biotype = attr_dic.get("gene_biotype")
@@ -365,7 +359,8 @@ def parse_gtf(gtf_file):
     gene_name_gene_id_dic = {}
     for line in gene_lines:
         gene = GTF_GENE()
-        gene._init_by_gtf_line(line)
+        seqid, source, left, right, score, ori, frame, attr_dic = line
+        gene._init_by_gtf_line(seqid, source, left, right, score, ori, frame, attr_dic)
         gene_name = gene.get_gene_name()
         assert gene_name != None
         gene_id = gene.get_gene_id()
@@ -381,7 +376,8 @@ def parse_gtf(gtf_file):
         transcript_lines = gtf_data['transcript']
         for line in transcript_lines:
             transcript = GTF_TRANSCRIPT()
-            transcript._init_by_gtf_line(line)
+            seqid, source, left, right, score, ori, frame, attr_dic = line
+            transcript._init_by_gtf_line(seqid, source, left, right, score, ori, frame, attr_dic)
             gene_id = transcript.get_gene_id()
             transcript_id = transcript.get_transcript_id()
             gene = gene_id_gene_dic[gene_id]
@@ -391,7 +387,8 @@ def parse_gtf(gtf_file):
         exon_lines = gtf_data['exon']
         for line in exon_lines:
             exon = GTF_EXON()
-            exon._init_by_gtf_line(line)
+            seqid, source, frange, score, ori, frame, attr_dic = line
+            exon._init_by_gtf_line(seqid, source, frange, score, ori, frame, attr_dic)
             gene_id = exon.get_gene_id()
             transcript_id = exon.get_transcript_id()
             gene = gene_id_gene_dic[gene_id]
@@ -409,7 +406,8 @@ def parse_gtf(gtf_file):
         cds_lines = gtf_data['CDS']
         for line in cds_lines:
             cds = GTF_CDS()
-            cds._init_by_gtf_line(line)
+            seqid, source, frange, score, ori, frame, attr_dic = line
+            cds._init_by_gtf_line(seqid, source, frange, score, ori, frame, attr_dic)
             gene_id = cds.get_gene_id()
             transcript_id = cds.get_transcript_id()
             gene = gene_id_gene_dic[gene_id]
@@ -427,7 +425,8 @@ def parse_gtf(gtf_file):
         start_codon_lines = gtf_data['start_codon']
         for line in start_codon_lines:
             start_codon = GTF_START_CODON()
-            start_codon._init_by_gtf_line(line)
+            seqid, source, frange, score, ori, frame, attr_dic = line
+            start_codon._init_by_gtf_line(seqid, source, frange, score, ori, frame, attr_dic)
             gene_id = start_codon.get_gene_id()
             transcript_id = start_codon.get_transcript_id()
             gene = gene_id_gene_dic[gene_id]
@@ -445,7 +444,8 @@ def parse_gtf(gtf_file):
         stop_codon_lines = gtf_data['stop_codon']
         for line in stop_codon_lines:
             stop_codon = GTF_START_CODON()
-            stop_codon._init_by_gtf_line(line)
+            seqid, source, frange, score, ori, frame, attr_dic = line
+            stop_codon._init_by_gtf_line(seqid, source, frange, score, ori, frame, attr_dic)
             gene_id = stop_codon.get_gene_id()
             transcript_id = stop_codon.get_transcript_id()
             gene = gene_id_gene_dic[gene_id]
