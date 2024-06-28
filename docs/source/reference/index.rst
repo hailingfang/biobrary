@@ -1,0 +1,6 @@
+Bioparse Refernece
+=======================
+
+.. toctree::
+
+    bioparse

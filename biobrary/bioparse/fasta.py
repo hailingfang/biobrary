@@ -1,11 +1,21 @@
 """
-Founctions and Class to parse FASTA file.
+Parse FASTA file
+==========================
+
+test
+
 """
 
 import gzip
 
 
 class FASTA_ENTRY:
+    """
+    FASTA_ENTRY class
+    ====================
+
+    test 2
+    """
     def __init__(self, seq_id, seq_info, entry_start, entry_size, fasta_file):
         self._seq_id = seq_id
         self._seq_info = seq_info
