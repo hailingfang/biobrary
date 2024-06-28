@@ -30,7 +30,10 @@ jobs:
       - name: build release distributions
         run: |
           # NOTE: put your own distribution build steps here.
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install build
           python -m build
+          python -m pip install twine
 
       - name: upload windows dists
         uses: actions/upload-artifact@v4
