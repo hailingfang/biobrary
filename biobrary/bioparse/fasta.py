@@ -104,7 +104,6 @@ def parse_fasta(fasta_file):
     fasta = FASTA()
     for seq_id in fasta_data:
         seq_info, entry_start, entry_size = fasta_data[seq_id]
-        print(seq_id, seq_info, entry_start, entry_size)
         fasta_entry = FASTA_ENTRY(seq_id, seq_info, entry_start, entry_size, fasta_file)
         fasta.seq_id_entry_dic[seq_id] = fasta_entry
     return fasta
