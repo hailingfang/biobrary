@@ -8,9 +8,6 @@ Biobrary is a python library, which contain data and methods for biological comp
 
 * ete3
 
-    pyqt5 is needed by ete3. you maybe need install it manually.
- 
-
 ## Install  
 
 * using pip  
@@ -46,15 +43,6 @@ dir(biobrary)
 
         class for gtf file.
 
-    * GFF
-
-        class for gff file.
-
-
-* biocondon  
-
-
-* amino_acids_mw  
 
 * tree
 
