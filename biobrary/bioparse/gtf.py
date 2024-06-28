@@ -365,8 +365,10 @@ def parse_gtf(gtf_file):
         seqid, source, left, right, score, ori, frame, attr_dic = line
         gene._init_by_gtf_line(seqid, source, left, right, score, ori, frame, attr_dic)
         gene_name = gene.get_gene_name()
-        assert gene_name != None
         gene_id = gene.get_gene_id()
+        assert gene_id != None
+        if not gene_name:
+            gene_name = gene_id
         if gene_name not in gene_name_gene_id_dic:
             gene_name_gene_id_dic[gene_name] = [gene_id]
         else:
