@@ -8,7 +8,7 @@ import gzip
 
 class GTF_BASE:
     def __init__(self):
-        self._seqname = None
+        self._seq_name = None
         self._source = None
         self._feature = None
         self._range = None
@@ -17,7 +17,7 @@ class GTF_BASE:
         self._frame = None
         self._attr = None
 
-    def get_seqname(self):
+    def get_seq_name(self):
         return self._seqname
     
     def get_source(self):
