@@ -4,6 +4,7 @@ Founctions and Class to parse GTF file
 
 import re
 import gzip
+import sys
 
 
 class GTF_BASE:
@@ -232,6 +233,8 @@ class GTF:
     def get_meta(self):
         return self._meta
 
+    def get_gene_id_by_name(self, gene_name):
+        return self._gene_name_gene_id_dic.get(gene_name)
 
 def _read_gtf(gtf_file):
     meta = []
@@ -308,7 +311,7 @@ def _meger_feature(data, feature, attr_key):
             #print(f"{attr_key} not found in {line}")
     
     if ignored_line_num:
-        print(f"{ignored_line_num} entries in {feature} were ommited, because less {attr_key} attribute.")
+        print(f"{ignored_line_num} entries in {feature} were ommited, because less {attr_key} attribute.", file=sys.stderr)
 
     grouped_data = []
     for key in group_dic:
