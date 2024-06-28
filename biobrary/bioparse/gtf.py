@@ -383,8 +383,11 @@ def parse_gtf(gtf_file):
             transcript._init_by_gtf_line(seqid, source, left, right, score, ori, frame, attr_dic)
             gene_id = transcript.get_gene_id()
             transcript_id = transcript.get_transcript_id()
-            gene = gene_id_gene_dic[gene_id]
-            gene._transcript_id_transcript_dic[transcript_id] = transcript
+            gene = gene_id_gene_dic.get(gene_id)
+            if gene:
+                gene._transcript_id_transcript_dic[transcript_id] = transcript
+            else:
+                print(f"{gene_id} not contain a gene feature line.", file=sys.stderr)
 
     if 'exon' in gtf_data:
         exon_lines = gtf_data['exon']
@@ -394,17 +397,20 @@ def parse_gtf(gtf_file):
             exon._init_by_gtf_line(seqid, source, frange, score, ori, frame, attr_dic)
             gene_id = exon.get_gene_id()
             transcript_id = exon.get_transcript_id()
-            gene = gene_id_gene_dic[gene_id]
-            if transcript_id in gene.get_transcript_id_s():
-                transcript = gene.get_transcript(transcript_id)
-                transcript._exon = exon
+            gene = gene_id_gene_dic.get(gene_id)
+            if gene:
+                if transcript_id in gene.get_transcript_id_s():
+                    transcript = gene.get_transcript(transcript_id)
+                    transcript._exon = exon
+                else:
+                    transcript = GTF_TRANSCRIPT()
+                    transcript._gene_id = gene_id
+                    transcript._transcript_id = transcript_id
+                    transcript._exon = exon
+                    gene._transcript_id_transcript_dic[transcript_id] = transcript
             else:
-                transcript = GTF_TRANSCRIPT()
-                transcript._gene_id = gene_id
-                transcript._transcript_id = transcript_id
-                transcript._exon = exon
-                gene._transcript_id_transcript_dic[transcript_id] = transcript
-            
+                    print(f"{gene_id} not contain a gene feature line.", file=sys.stderr)
+
     if 'CDS' in gtf_data:
         cds_lines = gtf_data['CDS']
         for line in cds_lines:
@@ -413,16 +419,19 @@ def parse_gtf(gtf_file):
             cds._init_by_gtf_line(seqid, source, frange, score, ori, frame, attr_dic)
             gene_id = cds.get_gene_id()
             transcript_id = cds.get_transcript_id()
-            gene = gene_id_gene_dic[gene_id]
-            if transcript_id in gene.get_transcript_id_s():
-                transcript = gene.get_transcript(transcript_id)
-                transcript._CDS = cds
+            gene = gene_id_gene_dic.get(gene_id)
+            if gene:
+                if transcript_id in gene.get_transcript_id_s():
+                    transcript = gene.get_transcript(transcript_id)
+                    transcript._CDS = cds
+                else:
+                    transcript = GTF_TRANSCRIPT()
+                    transcript._gene_id = gene_id
+                    transcript._transcript_id = transcript_id
+                    transcript._CDS = cds
+                    gene._transcript_id_transcript_dic[transcript_id] = transcript
             else:
-                transcript = GTF_TRANSCRIPT()
-                transcript._gene_id = gene_id
-                transcript._transcript_id = transcript_id
-                transcript._CDS = cds
-                gene._transcript_id_transcript_dic[transcript_id] = transcript
+                print(f"{gene_id} not contain a gene feature line.", file=sys.stderr)
 
     if 'start_codon' in gtf_data:
         start_codon_lines = gtf_data['start_codon']
@@ -432,16 +441,19 @@ def parse_gtf(gtf_file):
             start_codon._init_by_gtf_line(seqid, source, frange, score, ori, frame, attr_dic)
             gene_id = start_codon.get_gene_id()
             transcript_id = start_codon.get_transcript_id()
-            gene = gene_id_gene_dic[gene_id]
-            if transcript_id in gene.get_transcript_id_s():
-                transcript = gene.get_transcript(transcript_id)
-                transcript._start_codon = start_codon
+            gene = gene_id_gene_dic.get(gene_id)
+            if gene:
+                if transcript_id in gene.get_transcript_id_s():
+                    transcript = gene.get_transcript(transcript_id)
+                    transcript._start_codon = start_codon
+                else:
+                    transcript = GTF_TRANSCRIPT()
+                    transcript._gene_id = gene_id
+                    transcript._transcript_id = transcript_id
+                    transcript._start_codon = start_codon
+                    gene._transcript_id_transcript_dic[transcript_id] = transcript
             else:
-                transcript = GTF_TRANSCRIPT()
-                transcript._gene_id = gene_id
-                transcript._transcript_id = transcript_id
-                transcript._start_codon = start_codon
-                gene._transcript_id_transcript_dic[transcript_id] = transcript
+                print(f"{gene_id} not contain a gene feature line.", file=sys.stderr)
 
     if 'stop_codon' in gtf_data:
         stop_codon_lines = gtf_data['stop_codon']
@@ -451,16 +463,19 @@ def parse_gtf(gtf_file):
             stop_codon._init_by_gtf_line(seqid, source, frange, score, ori, frame, attr_dic)
             gene_id = stop_codon.get_gene_id()
             transcript_id = stop_codon.get_transcript_id()
-            gene = gene_id_gene_dic[gene_id]
-            if transcript_id in gene.get_transcript_id_s():
-                transcript = gene.get_transcript(transcript_id)
-                transcript._stop_codon = stop_codon
+            gene = gene_id_gene_dic.get(gene_id)
+            if gene:
+                if transcript_id in gene.get_transcript_id_s():
+                    transcript = gene.get_transcript(transcript_id)
+                    transcript._stop_codon = stop_codon
+                else:
+                    transcript = GTF_TRANSCRIPT()
+                    transcript._gene_id = gene_id
+                    transcript._transcript_id = transcript_id
+                    transcript._stop_codon = stop_codon
+                    gene._transcript_id_transcript_dic[transcript_id] = transcript
             else:
-                transcript = GTF_TRANSCRIPT()
-                transcript._gene_id = gene_id
-                transcript._transcript_id = transcript_id
-                transcript._stop_codon = stop_codon
-                gene._transcript_id_transcript_dic[transcript_id] = transcript
+                print(f"{gene_id} not contain a gene feature line.", file=sys.stderr)
     return gtf
 
 
