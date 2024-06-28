@@ -300,12 +300,17 @@ def _meger_feature(data, feature, attr_key):
     group_dic = {}
     ignored_line_num = 0
     for line in data_fea:
+        seqid = line[0]
+        if seqid in group_dic:
+            pass
+        else:
+            group_dic[seqid] = {}
         key = line[-1].get(attr_key)
         if key:
-            if key not in group_dic:
-                group_dic[key] = [line]
+            if key not in group_dic[seqid]:
+                group_dic[seqid][key] = [line]
             else:
-                group_dic[key].append(line)
+                group_dic[seqid][key].append(line)
         else:
             ignored_line_num += 1
             #print(f"{attr_key} not found in {line}")
@@ -314,33 +319,34 @@ def _meger_feature(data, feature, attr_key):
         print(f"{ignored_line_num} entries in {feature} were ommited, because less {attr_key} attribute.", file=sys.stderr)
 
     grouped_data = []
-    for key in group_dic:
-        seqid_g = []
-        source_g = []
-        left_g = []
-        right_g = []
-        score_g = []
-        ori_g = []
-        frame_g = []
-        attr_g = []
-        for line in group_dic[key]:
-            seqid, source, left, right, score, ori, frame, attr = line
-            seqid_g.append(seqid)
-            source_g.append(source)
-            left_g.append(left)
-            right_g.append(right)
-            score_g.append(score)
-            ori_g.append(ori)
-            frame_g.append(frame)
-            attr_g.append(attr)
-        seqid = seqid_g[0]
-        source = source_g[0]
-        frange = [ele for ele in zip(left_g, right_g)]
-        score = score_g[0]
-        ori = ori_g[0]
-        frame = frame_g
-        attr = attr_g[0]
-        grouped_data.append([seqid, source, frange, score, ori, frame, attr])
+    for seqid in group_dic:
+        for key in group_dic[seqid]:
+            seqid_g = []
+            source_g = []
+            left_g = []
+            right_g = []
+            score_g = []
+            ori_g = []
+            frame_g = []
+            attr_g = []
+            for line in group_dic[seqid][key]:
+                seqid, source, left, right, score, ori, frame, attr = line
+                seqid_g.append(seqid)
+                source_g.append(source)
+                left_g.append(left)
+                right_g.append(right)
+                score_g.append(score)
+                ori_g.append(ori)
+                frame_g.append(frame)
+                attr_g.append(attr)
+            seqid = seqid_g[0]
+            source = source_g[0]
+            frange = [ele for ele in zip(left_g, right_g)]
+            score = score_g[0]
+            ori = ori_g[0]
+            frame = frame_g
+            attr = attr_g[0]
+            grouped_data.append([seqid, source, frange, score, ori, frame, attr])
     data[feature] = grouped_data
 
 
