@@ -209,7 +209,7 @@ def island_location(islands: "list", distance: "int", side="left") -> "int":
         return 0
 
 
-def relative_coord(reference: "int", positions: "list", reverse: "bool" =False) -> "list":
+def nucleotide_relative_coord(positions: "list", reference: "int", reverse: "bool" =False) -> "list":
     """
     Calculate relavtive location to the reference.
 
@@ -226,20 +226,23 @@ def relative_coord(reference: "int", positions: "list", reverse: "bool" =False) 
     relative_pos: list.
     """
 
-    pos_rela = [pos - reference for pos in positions]
     if reverse:
-        return [-pos for pos in pos_rela]
+        pos_rela = [reference - pos for pos in positions]
+    else:
+        pos_rela = [pos - reference for pos in positions]
+    pos_rela = [ele + 1 if ele > -1 else ele for ele in pos_rela]
     return pos_rela
 
 
-def change_coordinate_rel(ref, pos, ori="+"):
+def change_coordinate_rel(pos, left, right, ori="+"):
     """
     Convert base cooradition
 
     Parameters:
     ------------------
-    ref: [left, right], reference position.
     pos: list, the pos to be converted.[[l1, l2], [l3, l4],...]
+    left: left side
+    right: right side
     ori: "+"(default) or "-".
         oritation
 
@@ -247,53 +250,27 @@ def change_coordinate_rel(ref, pos, ori="+"):
     --------------
     list: converted result.
     """
-    pos = copy.deepcopy(pos)
-    if type(pos) == list and type(pos[0]) == list:
-        new_pos = []
-        if ori == "+":
-            for ele in pos:
-                ele.sort()
-            pos.sort(key=lambda x:x[0])
-        else:
-            for ele in pos:
-                ele.sort(reverse=True)
-            pos.sort(key=lambda x:x[0], reverse=True)
-
-        if ori == "+":
-            for pos_ele in pos:
-                tmp = []
-                for num in pos_ele:
-                    tmp.append(num - ref[0] + 1)
-                new_pos.append(tmp)
-        else:
-            for pos_ele in pos:
-                tmp = []
-                for num in pos_ele:
-                    tmp.append(ref[1] - num + 1)
-                new_pos.append(tmp)
-        return new_pos
-    
-    elif type(pos) == list and type(pos[0]) == int:
-        new_pos = []
-        if ori == "+":
-            for num in pos:
-                new_pos.append(num - ref[0] + 1)
-        else:
-            for num in pos:
-                new_pos.append(ref[1] - num + 1)
-        return new_pos
-
-    elif type(pos) == int:
-        new_pos = None
-        if ori == "+":
-            new_pos = pos - ref[0] + 1
-        else:
-            new_pos = ref[1] - pos + 1
-
-        return new_pos
-
+    if ori == '+':
+        pos.sort(key=lambda x:x[0])
+        pos_n = []
+        for p in pos:
+            pos_n += p
+        pos_n = nucleotide_relative_coord(pos_n, left, reverse=False)
+        pos = []
+        for idx in range(0, len(pos_n), 2):
+            pos.append([pos_n[idx], pos_n[idx + 1]])
+        return pos
     else:
-        print("pos type not correct.")
+        pos.sort(key=lambda x:x[1])
+        pos_n = []
+        for p in pos:
+            pos_n += p
+        pos_n = nucleotide_relative_coord(pos_n, right, reverse=True)
+        pos_n.reverse()
+        pos = []
+        for idx in range(0, len(pos_n), 2):
+            pos.append([pos_n[idx], pos_n[idx + 1]])
+        return pos
 
 
 def change_coordinate_abs(ref, pos, ori="+"):
@@ -365,11 +342,5 @@ def split_block(segments, block_start, block_len):
 
 
 if __name__ == "__main__":
-    print(change_coordinate_rel([27806746,27831921],
-        [[27806746, 27807561], [27811053, 27811208],
-        [27811307, 27811447], [27814036, 27814217],
-        [27814674, 27814780], [27814875, 27815001],
-        [27817008, 27817221], [27818896, 27819024],
-        [27825090, 27825197], [27825352, 27825472],
-        [27827516, 27827562], [27827655, 27827778],
-         [27830670, 27831918]], ori="-"))
+    print(change_coordinate_rel([[21, 30], [42, 60], [79, 85]], 21, 103, ori='+'))
+    print(change_coordinate_rel([[21, 30], [42, 60], [79, 85]], 21, 103, ori='-'))
