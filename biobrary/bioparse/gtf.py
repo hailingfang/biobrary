@@ -259,7 +259,10 @@ def _read_gtf(gtf_file):
                     attr_dic[ele[0]] = ele[1]
                 else:
                     pre_v = attr_dic[ele[0]]
-                    attr_dic[ele[0]] = [pre_v, ele[1]]
+                    if type(pre_v) == list:
+                        attr_dic[ele[0]] = pre_v + [ele[1]]
+                    else:
+                        attr_dic[ele[0]] = [pre_v, ele[1]]
             if feature in data:
                 data[feature].append([seqid, source, int(left), int(right), score, ori, frame, attr_dic])
             else:
