@@ -296,6 +296,9 @@ def _read_gtf(gtf_file):
 
 
 def _meger_feature(data, feature, attr_key):
+    """
+    merge lines of a feature by a attributes.
+    """
     if feature not in data:
         return
 
@@ -354,6 +357,11 @@ def _meger_feature(data, feature, attr_key):
 
 
 def parse_gtf(gtf_file):
+    """
+    The funtion to read and parse gtf file. It create GTF,
+    GTF_GENE, GTF_TRANSCRIPT, GTF_CDS, GTF_START_CODON,
+    GTF_STOP_CODON object and link those object together.
+    """
     meta, gtf_data = _read_gtf(gtf_file)
     #print(list(gtf_data.keys()))
 
@@ -495,6 +503,9 @@ def parse_gtf(gtf_file):
 
 
 def test_gtf(gtf_file):
+    """
+    test gtf parse.
+    """
     parse_gtf(gtf_file)
 
 
