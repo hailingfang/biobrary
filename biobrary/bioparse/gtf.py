@@ -412,6 +412,8 @@ def parse_gtf(gtf_file):
             if gene:
                 if transcript_id in gene.get_transcript_id_s():
                     transcript = gene.get_transcript(transcript_id)
+                    if transcript._exon:
+                        print("warning, multiple exons", transcript_id)
                     transcript._exon = exon
                 else:
                     transcript = GTF_TRANSCRIPT()
@@ -434,6 +436,8 @@ def parse_gtf(gtf_file):
             if gene:
                 if transcript_id in gene.get_transcript_id_s():
                     transcript = gene.get_transcript(transcript_id)
+                    if transcript._CDS:
+                        print("warning, multiple cds", transcript_id)
                     transcript._CDS = cds
                 else:
                     transcript = GTF_TRANSCRIPT()
