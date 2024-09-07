@@ -295,7 +295,7 @@ def _read_gtf(gtf_file):
     return meta, data
 
 
-def _meger_feature(data, feature, attr_key):
+def _merge_feature(data, feature, attr_key):
     """
     merge lines of a feature by a attributes.
     """
@@ -365,10 +365,10 @@ def parse_gtf(gtf_file):
     meta, gtf_data = _read_gtf(gtf_file)
     #print(list(gtf_data.keys()))
 
-    _meger_feature(gtf_data, "exon", "transcript_id")
-    _meger_feature(gtf_data, "CDS", "protein_id")
-    _meger_feature(gtf_data, "start_codon", "protein_id")
-    _meger_feature(gtf_data, "stop_codon", "protein_id")
+    _merge_feature(gtf_data, "exon", "transcript_id")
+    _merge_feature(gtf_data, "CDS", "protein_id")
+    _merge_feature(gtf_data, "start_codon", "protein_id")
+    _merge_feature(gtf_data, "stop_codon", "protein_id")
 
     gtf = GTF()
     gtf._meta = meta
