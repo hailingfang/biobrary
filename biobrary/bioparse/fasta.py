@@ -63,33 +63,40 @@ def _read_fasta(fasta_file):
     seq_info_s = []
     if fasta_file.endswith(".gz"):
         fin = gzip.open(fasta_file, "r")
-        for line in fin:
-            if line[0] == 62:
-                line = line.decode()
-                head_len.append(len(line))
-                line = line.rstrip().split()
-                seq_id = line[0][1:]
-                seq_info = ' '.join(line[1:])
-                file_pos = fin.tell()
-                seq_id_s.append(seq_id)
-                seq_info_s.append(seq_info)
-                file_pos_s.append(file_pos)
+        while True:
+            line = fin.readline()
+            if line:
+                if line[0] == 62:
+                    line = line.decode()
+                    head_len.append(len(line))
+                    line = line.rstrip().split()
+                    seq_id = line[0][1:]
+                    seq_info = ' '.join(line[1:])
+                    file_pos = fin.tell()
+                    seq_id_s.append(seq_id)
+                    seq_info_s.append(seq_info)
+                    file_pos_s.append(file_pos)
+            else:
+                break
         file_pos_s.append(fin.tell())
         head_len.append(0)
         head_len = head_len[1:]
         fin.close()
     else:
         fin = open(fasta_file, "r")
-        for line in fin:
-            if line[0] == '>':
-                head_len.append(len(line))
-                line = line.rstrip().split()
-                seq_id = line[0][1:]
-                seq_info = ' '.join(line[1:])
-                file_pos = fin.tell()
-                seq_id_s.append(seq_id)
-                seq_info_s.append(seq_info)
-                file_pos_s.append(file_pos)
+        while True:
+            if line:
+                if line[0] == '>':
+                    head_len.append(len(line))
+                    line = line.rstrip().split()
+                    seq_id = line[0][1:]
+                    seq_info = ' '.join(line[1:])
+                    file_pos = fin.tell()
+                    seq_id_s.append(seq_id)
+                    seq_info_s.append(seq_info)
+                    file_pos_s.append(file_pos)
+            else:
+                break
         file_pos_s.append(fin.tell())
         head_len.append(0)
         head_len = head_len[1:]
