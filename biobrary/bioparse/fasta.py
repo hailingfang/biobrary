@@ -106,20 +106,61 @@ def _read_fasta(fasta_file):
     return data
 
 
-def parse_fasta(fasta_file):
+def parse_fasta(fasta_file, load_seq=False):
     fasta_data = _read_fasta(fasta_file)
     fasta = FASTA()
     for seq_id in fasta_data:
         seq_info, entry_start, entry_size = fasta_data[seq_id]
         fasta_entry = FASTA_ENTRY(seq_id, seq_info, entry_start, entry_size, fasta_file)
         fasta.seq_id_entry_dic[seq_id] = fasta_entry
+    if load_seq:
+        if fasta_file.endswith('gz'):
+            dt = {}
+            seq_id = None
+            fin = gzip.open(fasta_file, 'r')
+            for line in fin:
+                line = line.decode().rstrip()
+                if line[0] == '>':
+                    seq_id = line[1:].split()[0]
+                    dt[seq_id] = []
+                else:
+                    dt[seq_id].append(line)
+            fin.close()
+            for key in dt:
+                dt[key] = ''.join(dt[key])
+            for seq_id in fasta.get_seq_id_s():
+                entry = fasta.get_seq_entry(seq_id)
+                seq = dt[seq_id]
+                entry._seq = seq
+                entry._seq_loaded = True
+        else:
+            dt = {}
+            seq_id = None
+            fin = open(fasta_file, 'r')
+            for line in fin:
+                line = line.rstrip()
+                if line[0] == '>':
+                    seq_id = line[1:].split()[0]
+                    dt[seq_id] = []
+                else:
+                    dt[seq_id].append(line)
+            fin.close()
+            for key in dt:
+                dt[key] = ''.join(dt[key])
+            for seq_id in fasta.get_seq_id_s():
+                entry = fasta.get_seq_entry(seq_id)
+                seq = dt[seq_id]
+                entry._seq = seq
+                entry._seq_loaded = True
     return fasta
 
 
 def test_fasta(fasta_file):
-    fasta = parse_fasta(fasta_file)
-    seq_id_s = fasta.get_seq_id_s()
-    print(seq_id_s)
+    fasta = parse_fasta(fasta_file, load_seq=True)
+    for seq_id in fasta.get_seq_id_s():
+        entry = fasta.get_seq_entry(seq_id)
+        seq = entry.get_seq()
+        print(seq_id, len(seq))
 
 
 if __name__ == "__main__":
