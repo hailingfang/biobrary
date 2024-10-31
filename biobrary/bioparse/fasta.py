@@ -85,6 +85,7 @@ def _read_fasta(fasta_file):
     else:
         fin = open(fasta_file, "r")
         while True:
+            line = fin.readline()
             if line:
                 if line[0] == '>':
                     head_len.append(len(line))
