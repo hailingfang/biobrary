@@ -1,19 +1,29 @@
 """
-Founctions and Class to parse FASTA file.
+Founctions and Classes to parse FASTA file.
+
+The main entry to parse FASTA file is parse_fasta. The function read
+a fasta file and reture a FASTA class. The FASTA class hold FASTA_ENTRY
+objects. And the information of FASTA_ENTRY objects can be inquired
+by method of FASTA_ENTRY class.
+
 """
 
 import gzip
 
 
 class FASTA_ENTRY:
-    def __init__(self, seq_id, seq_info, entry_start, entry_size, fasta_file):
+    def __init__(self, seq_id, head_line, entry_start, entry_size, fasta_file):
         self._seq_id = seq_id
-        self._seq_info = seq_info
+        self._head_line = head_line
         self._entry_start = entry_start
         self._entry_size = entry_size
         self._file = fasta_file
         self._seq_loaded = False
         self._seq = None
+        self._seq_len = None
+
+    def __str__(self):
+        return self.get_seq_id()
 
     def _load_seq(self):
         if not self._seq_loaded:
@@ -33,8 +43,8 @@ class FASTA_ENTRY:
     def get_seq_id(self):
         return self._seq_id
 
-    def get_seq_info(self):
-        return self._seq_info
+    def get_head_line(self):
+        return self._head_line
 
     def get_seq(self):
         if self._seq_loaded:
@@ -43,24 +53,45 @@ class FASTA_ENTRY:
             self._load_seq()
             return self._seq
 
+    def format_entry_str(self, width=80):
+        lines = []
+        block_idx = list(range(0, self._seq_len, width))
+        block_idx.append(self._seq_len)
+        lines.append(self._head_line)
+        for idx in range(len(block_idx) - 1):
+            lines.append(self._seq[block_idx[idx]: block_idx[idx + 1]])
+        return "\n".join(lines)
+
 
 class FASTA:
     def __init__(self):
-        self.seq_id_entry_dic = {}
+        self._seq_id_entry_dic = {}
+        self._seq_id_list = []
 
     def get_seq_id_s(self):
-        return list(self.seq_id_entry_dic.keys())
+        return self._seq_id_list
 
     def get_seq_entry(self, seq_id):
-        return self.seq_id_entry_dic[seq_id]
+        return self._seq_id_entry_dic[seq_id]
+
+    def __iter__(self):
+        self._start = 0
+        self._stop = len(self._seq_id_list)
+        return self
+
+    def __next__(self):
+        if self._start < self._stop:
+            self._start += 1
+            return self._seq_id_entry_dic[self._seq_id_list[self._start - 1]]
+        else:
+            raise StopIteration
 
 
 def _read_fasta(fasta_file):
     data = {}
-    file_pos_s = []
     head_len = []
-    seq_id_s = []
-    seq_info_s = []
+    head_line_s = []
+    file_pos_s = []
     if fasta_file.endswith(".gz"):
         fin = gzip.open(fasta_file, "r")
         while True:
@@ -69,13 +100,8 @@ def _read_fasta(fasta_file):
                 if line[0] == 62:
                     line = line.decode()
                     head_len.append(len(line))
-                    line = line.rstrip().split()
-                    seq_id = line[0][1:]
-                    seq_info = ' '.join(line[1:])
-                    file_pos = fin.tell()
-                    seq_id_s.append(seq_id)
-                    seq_info_s.append(seq_info)
-                    file_pos_s.append(file_pos)
+                    head_line_s.append(line.rstrip())
+                    file_pos_s.append(fin.tell())
             else:
                 break
         file_pos_s.append(fin.tell())
@@ -89,12 +115,8 @@ def _read_fasta(fasta_file):
             if line:
                 if line[0] == '>':
                     head_len.append(len(line))
-                    line = line.rstrip().split()
-                    seq_id = line[0][1:]
-                    seq_info = ' '.join(line[1:])
+                    head_line_s.append(line.rstrip())
                     file_pos = fin.tell()
-                    seq_id_s.append(seq_id)
-                    seq_info_s.append(seq_info)
                     file_pos_s.append(file_pos)
             else:
                 break
@@ -102,18 +124,43 @@ def _read_fasta(fasta_file):
         head_len.append(0)
         head_len = head_len[1:]
         fin.close()
-    for idx, seq_id in enumerate(seq_id_s):
-        data[seq_id] = [seq_info_s[idx], file_pos_s[idx], file_pos_s[idx + 1] - file_pos_s[idx] - head_len[idx]]
+    for idx, head_line in enumerate(head_line_s):
+        #sequence data start position and its offset.
+        data[head_line] = [file_pos_s[idx], file_pos_s[idx + 1] - file_pos_s[idx] - head_len[idx]] 
     return data
 
 
-def parse_fasta(fasta_file, load_seq=False):
+def _default_head_parse_fun(head_line):
+    return head_line.split()[0][1:]
+
+
+def parse_fasta(fasta_file, load_seq=False, head_parse_func=None):
+    """
+    Read FASTA file, and return a FASTA object.
+
+    Parameters
+    -------------
+    fasta_file: string, the name of FASTA file, plain text or gz file.
+    load_seq: bool, default=False, Load the sequence into memory when create FASTA object.
+    head_parse_func: fuction, default=None, The function used to parse head line,
+        the function should return seq_id.
+
+        
+    Returns
+    ------------
+    FASTA_object: An instance of FASTA class.
+    """
     fasta_data = _read_fasta(fasta_file)
     fasta = FASTA()
-    for seq_id in fasta_data:
-        seq_info, entry_start, entry_size = fasta_data[seq_id]
-        fasta_entry = FASTA_ENTRY(seq_id, seq_info, entry_start, entry_size, fasta_file)
-        fasta.seq_id_entry_dic[seq_id] = fasta_entry
+    if not head_parse_func:
+        head_parse_func = _default_head_parse_fun
+
+    for head_line in fasta_data:
+        seq_id = head_parse_func(head_line)
+        entry_start, entry_size = fasta_data[head_line]
+        fasta_entry = FASTA_ENTRY(seq_id, head_line, entry_start, entry_size, fasta_file)
+        fasta._seq_id_entry_dic[seq_id] = fasta_entry
+        fasta._seq_id_list.append(seq_id)
     if load_seq:
         if fasta_file.endswith('gz'):
             dt = {}
@@ -122,7 +169,7 @@ def parse_fasta(fasta_file, load_seq=False):
             for line in fin:
                 line = line.decode().rstrip()
                 if line[0] == '>':
-                    seq_id = line[1:].split()[0]
+                    seq_id = head_parse_func(line)
                     dt[seq_id] = []
                 else:
                     dt[seq_id].append(line)
@@ -133,6 +180,7 @@ def parse_fasta(fasta_file, load_seq=False):
                 entry = fasta.get_seq_entry(seq_id)
                 seq = dt[seq_id]
                 entry._seq = seq
+                entry._seq_len = len(seq)
                 entry._seq_loaded = True
         else:
             dt = {}
@@ -141,7 +189,7 @@ def parse_fasta(fasta_file, load_seq=False):
             for line in fin:
                 line = line.rstrip()
                 if line[0] == '>':
-                    seq_id = line[1:].split()[0]
+                    seq_id = head_parse_func(line)
                     dt[seq_id] = []
                 else:
                     dt[seq_id].append(line)
@@ -152,16 +200,19 @@ def parse_fasta(fasta_file, load_seq=False):
                 entry = fasta.get_seq_entry(seq_id)
                 seq = dt[seq_id]
                 entry._seq = seq
+                entry._seq_len = len(seq)
                 entry._seq_loaded = True
     return fasta
 
 
 def test_fasta(fasta_file):
+    """
+    The testing function. Test the read of the FASTA file.
+    """
     fasta = parse_fasta(fasta_file, load_seq=True)
-    for seq_id in fasta.get_seq_id_s():
-        entry = fasta.get_seq_entry(seq_id)
-        seq = entry.get_seq()
-        print(seq_id, len(seq))
+    for ent in fasta:
+        print(ent.format_entry_str())
+        break
 
 
 if __name__ == "__main__":
