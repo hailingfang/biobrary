@@ -5,7 +5,6 @@ The main entry to parse FASTA file is parse_fasta. The function read
 a fasta file and reture a FASTA class. The FASTA class hold FASTA_ENTRY
 objects. And the information of FASTA_ENTRY objects can be inquired
 by method of FASTA_ENTRY class.
-
 """
 
 import gzip
@@ -41,12 +40,33 @@ class FASTA_ENTRY:
                 fin.close()
 
     def get_seq_id(self):
+        """
+        Get the sequence id.
+
+        Returns
+        -----------
+        seq_id: string, the seq_id of the entry.
+        """
         return self._seq_id
 
     def get_head_line(self):
+        """
+        Get the head line of entry.
+
+        Returns
+        -----------------
+        head_line: string, head line of the entry.
+        """
         return self._head_line
 
     def get_seq(self):
+        """
+        Get the sequence of the entry.
+
+        Returns
+        ---------------
+        seq: string, the sequence of the entry.
+        """
         if self._seq_loaded:
             return self._seq
         else:
@@ -54,6 +74,13 @@ class FASTA_ENTRY:
             return self._seq
 
     def format_entry_str(self, width=80):
+        """
+        To format the entry head lines and sequence for printing.
+
+        Returns
+        --------------
+        string: the formated string for printing.
+        """
         lines = []
         block_idx = list(range(0, self._seq_len, width))
         block_idx.append(self._seq_len)
@@ -64,15 +91,12 @@ class FASTA_ENTRY:
 
 
 class FASTA:
+    """
+    The FASTA class to parse FASTA file.
+    """
     def __init__(self):
         self._seq_id_entry_dic = {}
         self._seq_id_list = []
-
-    def get_seq_id_s(self):
-        return self._seq_id_list
-
-    def get_seq_entry(self, seq_id):
-        return self._seq_id_entry_dic[seq_id]
 
     def __iter__(self):
         self._start = 0
@@ -86,8 +110,35 @@ class FASTA:
         else:
             raise StopIteration
 
+    def get_seq_id_s(self):
+        """
+        Get seq_id_s of all entries.
+
+        Returns
+        --------------
+        seq_list: a list which contain all sequence ids of entries.
+        """
+        return self._seq_id_list
+
+    def get_seq_entry(self, seq_id):
+        """
+        Get entry by seq_id.
+
+        Parameters
+        ----------------
+        seq_id: the id of the entry.
+
+        Returns
+        ----------------
+        FASTA entry: the FASTA ENTRY object inquired by the id.
+        """
+        return self._seq_id_entry_dic.get(seq_id)
+
 
 def _read_fasta(fasta_file):
+    """
+    To read the FASTA file, and split the file contents to entries.
+    """
     data = {}
     head_len = []
     head_line_s = []
@@ -131,10 +182,13 @@ def _read_fasta(fasta_file):
 
 
 def _default_head_parse_fun(head_line):
+    """
+    The default function to parse head lines of FASTA entry.
+    """
     return head_line.split()[0][1:]
 
 
-def parse_fasta(fasta_file, load_seq=False, head_parse_func=None):
+def parse_fasta(fasta_file, load_seq=False, head_parse_func=_default_head_parse_fun):
     """
     Read FASTA file, and return a FASTA object.
 
@@ -145,15 +199,12 @@ def parse_fasta(fasta_file, load_seq=False, head_parse_func=None):
     head_parse_func: fuction, default=None, The function used to parse head line,
         the function should return seq_id.
 
-        
     Returns
     ------------
     FASTA_object: An instance of FASTA class.
     """
     fasta_data = _read_fasta(fasta_file)
     fasta = FASTA()
-    if not head_parse_func:
-        head_parse_func = _default_head_parse_fun
 
     for head_line in fasta_data:
         seq_id = head_parse_func(head_line)
@@ -208,6 +259,10 @@ def parse_fasta(fasta_file, load_seq=False, head_parse_func=None):
 def test_fasta(fasta_file):
     """
     The testing function. Test the read of the FASTA file.
+
+    Parameters
+    ---------------
+    fasta_file: the file name of FASTA file.
     """
     fasta = parse_fasta(fasta_file, load_seq=True)
     for ent in fasta:
