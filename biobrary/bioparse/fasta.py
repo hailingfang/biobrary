@@ -11,6 +11,10 @@ import gzip
 
 
 class FASTA_ENTRY:
+    """
+    The FASTA_ENTRY class, storing the information of entries and inquiry information
+    from the entries.
+    """
     def __init__(self, seq_id, head_line, entry_start, entry_size, fasta_file):
         self._seq_id = seq_id
         self._head_line = head_line
