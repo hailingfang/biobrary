@@ -4,4 +4,4 @@ from . import tree
 from . import seq
 from . import misc
 
-version = "0.2.2"
+version = "0.2.3"
