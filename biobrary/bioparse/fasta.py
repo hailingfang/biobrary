@@ -23,7 +23,6 @@ class FASTA_ENTRY:
         self._file = fasta_file
         self._seq_loaded = False
         self._seq = None
-        self._seq_len = None
 
     def __str__(self):
         return self.get_seq_id()
@@ -42,6 +41,9 @@ class FASTA_ENTRY:
                 self._seq = ''.join(fin.read(self._entry_size).split('\n')[:-1])
                 self._seq_loaded = True
                 fin.close()
+
+    def unload_seq(self):
+        self._seq = None
 
     def get_seq_id(self):
         """
@@ -77,17 +79,6 @@ class FASTA_ENTRY:
             self._load_seq()
             return self._seq
 
-    def get_seq_len(self):
-        if self._seq_len:
-            return self._seq_len
-        else:
-            self._load_seq()
-            self._seq_len = len(self._seq)
-            return self._seq_len
-
-    def unload_seq(self):
-        self._seq = None
-
     def format_entry_str(self, width=80):
         """
         To format the entry head lines and sequence for printing.
@@ -96,9 +87,11 @@ class FASTA_ENTRY:
         --------------
         string: the formated string for printing.
         """
+        seq = self.get_seq()
+        seq_len = len(seq)
         lines = []
-        block_idx = list(range(0, self._seq_len, width))
-        block_idx.append(self._seq_len)
+        block_idx = list(range(0, seq_len, width))
+        block_idx.append(seq_len)
         lines.append(self._head_line)
         for idx in range(len(block_idx) - 1):
             lines.append(self._seq[block_idx[idx]: block_idx[idx + 1]])
@@ -246,7 +239,6 @@ def parse_fasta(fasta_file, load_seq=False, head_parse_func=_default_head_parse_
                 entry = fasta.get_seq_entry(seq_id)
                 seq = dt[seq_id]
                 entry._seq = seq
-                entry._seq_len = len(seq)
                 entry._seq_loaded = True
         else:
             dt = {}
@@ -266,7 +258,6 @@ def parse_fasta(fasta_file, load_seq=False, head_parse_func=_default_head_parse_
                 entry = fasta.get_seq_entry(seq_id)
                 seq = dt[seq_id]
                 entry._seq = seq
-                entry._seq_len = len(seq)
                 entry._seq_loaded = True
     return fasta
 
