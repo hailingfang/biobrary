@@ -77,6 +77,17 @@ class FASTA_ENTRY:
             self._load_seq()
             return self._seq
 
+    def get_seq_len(self):
+        if self._seq_len:
+            return self._seq_len
+        else:
+            self._load_seq()
+            self._seq_len = len(self._seq)
+            return self._seq_len
+
+    def unload_seq(self):
+        self._seq = None
+
     def format_entry_str(self, width=80):
         """
         To format the entry head lines and sequence for printing.
