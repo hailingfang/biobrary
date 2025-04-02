@@ -9,6 +9,8 @@ from biobrary.misc import merge_islands
 
 
 re_temp = re.compile(r'\s?(.+?)\s"(.+?)";')
+
+
 class GTF_ENTRY:
     def __init__(self):
         self._seq = None
@@ -84,7 +86,7 @@ class GTF:
     def __init__(self):
         self._meta = None
         self._entries = []
-        self._seq_s = None
+        self._seqname_s = None
         self._source_s = None
         self._feature_type_s = None
 
@@ -184,20 +186,20 @@ class GTF:
         for gene_id in group_dic:
             ent = GTF_ENTRY()
             gene_name = []
-            seq_s = set()
+            seqname_s = set()
             ori_s = set()
             ent_range_s = []
             for trans in group_dic[gene_id]:
                 gene_name.append(trans.get_attr('gene_name'))
                 position = trans.get_position()
-                seq_s.add(position[0])
+                seqname_s.add(position[0])
                 ori_s.add(position[3])
                 ent_range_s.append(position[1: 3])
-            assert len(seq_s) == 1
+            assert len(seqname_s) == 1
             assert len(ori_s) == 1
             merged_islands = merge_islands(ent_range_s)
             merged_islands.sort(key=lambda x:x[0])
-            ent._seq = list(seq_s)[0]
+            ent._seq = list(seqname_s)[0]
             ent._source = 'GTF_PARSER'
             ent._feature = 'gene'
             ent._left = merged_islands[0][0]
@@ -207,21 +209,20 @@ class GTF:
             ent._frame = '.'
             ent._attr_dic = {'gene_id': gene_id}
             self._entries.append(ent)
+        self._source_s.add('GTF_PARSER')
+        self._feature_type_s.add('gene')
 
-    def construct_entries(self, new_feature, exist_feature, group_attr, other_attr=[]):
-        entries = self.get_entries_by_feature(exist_feature)
-        group_dic = {}
-        other_attr_dic = {ele: [] for ele in other_attr}
-        for ent in entries:
-            attr_value = ent.get_attr(group_attr)
-            if attr_value in group_dic:
-                group_dic[attr_value].append(ent)
-            else:
-                group_dic[attr_value] = [ent]
-        for attr_value in group_dic:
-            pass
 
-    def structure_entries(self):
+
+    def struct_fea_by_position(self, fea_parent, fea_child):
+        pass
+
+
+    def struc_fea_by_attribute(self, fea_parent, fea_child):
+        pass
+
+
+    def struct_feature_s(self, feature_s, method_s):
         pass
 
 
@@ -264,7 +265,7 @@ def parse_gtf(gtf_file):
                 meta.append(line)
     gtf._meta = meta
     gtf._entries = entry
-    gtf._seq_s = seqname_s
+    gtf._seqname_s = seqname_s
     gtf._source_s = source_s
     gtf._feature_type_s = feature_type_s
 
